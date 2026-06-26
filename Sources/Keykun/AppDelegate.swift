@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBar: StatusBarController?
     private var settingsWindowController: SettingsWindowController?
     private var permissionTimer: Timer?
+    private var kuntraykunBridge: KuntraykunBridge?
     private var settings = Settings.default
 
     // アップデート関連。
@@ -42,6 +43,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         startTapWhenPermitted()
+
+        // kuntraykun 連携: 管理対象なら自分のアイコンを隠し、showMenu でメニューを出す。
+        let bridge = KuntraykunBridge(
+            setHidden: { [weak self] hidden in self?.statusBar?.setManagedHidden(hidden) },
+            popUpMenu: { [weak self] point in self?.statusBar?.popUpMenu(at: point) }
+        )
+        bridge.start()
+        kuntraykunBridge = bridge
 
         // 起動時にサイレントで更新チェック（あればメニュー文言を変更）。
         startUpdateCheck(interactive: false)
