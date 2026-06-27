@@ -26,6 +26,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let updateService = UpdateService()
     private lazy var selfUpdater = SelfUpdater(service: updateService)
     private var availableRelease: ReleaseInfo?
+    /// 定期的なアップデート監視の間隔（1時間）。GitHub 未認証 API のレート制限（60回/時）に十分余裕。
+    private let updateCheckInterval: TimeInterval = 60 * 60
+    private var updateTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         settings = store.load()
@@ -52,8 +55,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bridge.start()
         kuntraykunBridge = bridge
 
-        // 起動時にサイレントで更新チェック（あればメニュー文言を変更）。
+        // 起動時にサイレントで更新チェック（あればメニュー文言を変更＋赤バッジ表示）。
         startUpdateCheck(interactive: false)
+        // 以降は定期的に監視し、スリープ復帰時にも即チェックする。
+        scheduleUpdateChecks()
     }
 
     /// 設定を各ハンドラに反映する。
@@ -117,6 +122,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - アップデート
+
+    /// アップデートを定期的に監視する。Timer はスリープ中は発火しないため、
+    /// `NSWorkspace.didWakeNotification` を購読してスリープ復帰時にも即チェックする。
+    private func scheduleUpdateChecks() {
+        let timer = Timer.scheduledTimer(withTimeInterval: updateCheckInterval, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.startUpdateCheck(interactive: false) }
+        }
+        timer.tolerance = updateCheckInterval * 0.1  // 省電力のためコアレッシングを許可。
+        updateTimer = timer
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.startUpdateCheck(interactive: false) }
+        }
+    }
 
     /// 最新リリースを取得してバージョン比較する。
     /// interactive=false: 起動時のサイレントチェック（結果はメニュー文言に反映するのみ）。
