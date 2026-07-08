@@ -10,15 +10,19 @@ public struct Settings: Codable, Equatable {
     public var inputSwitch: InputSwitchSettings
     /// 「修飾キー二度押しでアプリ起動」機能の設定。
     public var modifierDoublePress: ModifierDoublePressSettings
+    /// 「Slack の Esc を SKK キャンセルへ変換」機能の設定。
+    public var slackEscape: SlackEscapeSettings
 
     public init(
         safeQuit: SafeQuitSettings = SafeQuitSettings(),
         inputSwitch: InputSwitchSettings = InputSwitchSettings(),
-        modifierDoublePress: ModifierDoublePressSettings = ModifierDoublePressSettings()
+        modifierDoublePress: ModifierDoublePressSettings = ModifierDoublePressSettings(),
+        slackEscape: SlackEscapeSettings = SlackEscapeSettings()
     ) {
         self.safeQuit = safeQuit
         self.inputSwitch = inputSwitch
         self.modifierDoublePress = modifierDoublePress
+        self.slackEscape = slackEscape
     }
 
     /// 既定設定。
@@ -38,6 +42,7 @@ public struct Settings: Codable, Equatable {
         case safeQuit
         case inputSwitch
         case modifierDoublePress
+        case slackEscape
     }
 
     public init(from decoder: Decoder) throws {
@@ -48,6 +53,8 @@ public struct Settings: Codable, Equatable {
             ?? InputSwitchSettings()
         self.modifierDoublePress = try container.decodeIfPresent(ModifierDoublePressSettings.self, forKey: .modifierDoublePress)
             ?? ModifierDoublePressSettings()
+        self.slackEscape = try container.decodeIfPresent(SlackEscapeSettings.self, forKey: .slackEscape)
+            ?? SlackEscapeSettings()
     }
 }
 
@@ -348,5 +355,29 @@ public struct ModifierDoublePressSettings: Codable, Equatable {
     /// いずれかの割り当てが ⌘ を対象にしているか（入力切替との衝突判定に使う）。
     public var usesCommand: Bool {
         bindings.contains { $0.modifier == .command }
+    }
+}
+
+/// Slack が最前面のときだけ Esc を Ctrl-G に置き換える設定。
+///
+/// SKK 系 IME では Ctrl-G がキャンセル操作として使われるため、Slack 側の Esc ショートカットを発火させずに
+/// SKK のキャンセル操作だけを成立させるための回避策として使う。
+public struct SlackEscapeSettings: Codable, Equatable {
+    /// 機能の有効/無効。
+    public var isEnabled: Bool
+
+    public init(isEnabled: Bool = false) {
+        self.isEnabled = isEnabled
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case isEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = SlackEscapeSettings()
+        self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
+            ?? defaults.isEnabled
     }
 }

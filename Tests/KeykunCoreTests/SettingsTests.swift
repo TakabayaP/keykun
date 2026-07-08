@@ -11,6 +11,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(s.inputSwitch.leftCommandAction, .eisu)
         XCTAssertEqual(s.inputSwitch.rightCommandAction, .kana)
         XCTAssertEqual(s.inputSwitch.tapThreshold, 0.5, accuracy: 0.0001)
+        XCTAssertFalse(s.slackEscape.isEnabled)
     }
 
     func testInputSwitchCodableRoundTrip() throws {
@@ -42,6 +43,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(decoded.safeQuit.interval, 1.5, accuracy: 0.0001)
         XCTAssertFalse(decoded.inputSwitch.isEnabled)
         XCTAssertEqual(decoded.inputSwitch.leftCommandAction, .eisu)
+        XCTAssertFalse(decoded.slackEscape.isEnabled)
     }
 
     func testDecodingLegacySourceKeysAreIgnored() throws {
@@ -60,11 +62,22 @@ final class SettingsTests: XCTestCase {
         var s = Settings.default
         s.safeQuit.isEnabled = false
         s.safeQuit.interval = 1.5
+        s.slackEscape.isEnabled = true
 
         let data = try JSONEncoder().encode(s)
         let decoded = try JSONDecoder().decode(Settings.self, from: data)
 
         XCTAssertEqual(decoded, s)
+    }
+
+    func testSlackEscapeCodableRoundTrip() throws {
+        var s = Settings.default
+        s.slackEscape.isEnabled = true
+
+        let data = try JSONEncoder().encode(s)
+        let decoded = try JSONDecoder().decode(Settings.self, from: data)
+
+        XCTAssertEqual(decoded.slackEscape, SlackEscapeSettings(isEnabled: true))
     }
 
     func testDecodingEmptyObjectFallsBackToDefaults() throws {
