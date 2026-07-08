@@ -6,10 +6,11 @@ final class SettingsTests: XCTestCase {
         let s = Settings.default
         XCTAssertTrue(s.safeQuit.isEnabled)
         XCTAssertEqual(s.safeQuit.interval, 1.0, accuracy: 0.0001)
-        // 入力切替は既定で無効。割り当ては左=英数・右=かな（Karabiner 同様の既定）。
+        // 入力切替は既定で無効。対象は Option、割り当ては左=英数・右=かな。
         XCTAssertFalse(s.inputSwitch.isEnabled)
-        XCTAssertEqual(s.inputSwitch.leftCommandAction, .eisu)
-        XCTAssertEqual(s.inputSwitch.rightCommandAction, .kana)
+        XCTAssertEqual(s.inputSwitch.targetModifier, .option)
+        XCTAssertEqual(s.inputSwitch.leftAction, .eisu)
+        XCTAssertEqual(s.inputSwitch.rightAction, .kana)
         XCTAssertEqual(s.inputSwitch.tapThreshold, 0.5, accuracy: 0.0001)
         XCTAssertFalse(s.slackEscape.isEnabled)
     }
@@ -17,8 +18,9 @@ final class SettingsTests: XCTestCase {
     func testInputSwitchCodableRoundTrip() throws {
         var s = Settings.default
         s.inputSwitch.isEnabled = true
-        s.inputSwitch.leftCommandAction = .kana
-        s.inputSwitch.rightCommandAction = .none
+        s.inputSwitch.targetModifier = .command
+        s.inputSwitch.leftAction = .kana
+        s.inputSwitch.rightAction = .none
         s.inputSwitch.tapThreshold = 0.25
 
         let data = try JSONEncoder().encode(s)
@@ -28,8 +30,8 @@ final class SettingsTests: XCTestCase {
 
     func testActionForSide() {
         var s = InputSwitchSettings()
-        s.leftCommandAction = .eisu
-        s.rightCommandAction = .kana
+        s.leftAction = .eisu
+        s.rightAction = .kana
         XCTAssertEqual(s.action(for: .left), .eisu)
         XCTAssertEqual(s.action(for: .right), .kana)
     }
@@ -42,7 +44,7 @@ final class SettingsTests: XCTestCase {
         let decoded = try JSONDecoder().decode(Settings.self, from: Data(json.utf8))
         XCTAssertEqual(decoded.safeQuit.interval, 1.5, accuracy: 0.0001)
         XCTAssertFalse(decoded.inputSwitch.isEnabled)
-        XCTAssertEqual(decoded.inputSwitch.leftCommandAction, .eisu)
+        XCTAssertEqual(decoded.inputSwitch.leftAction, .eisu)
         XCTAssertFalse(decoded.slackEscape.isEnabled)
     }
 
@@ -53,8 +55,9 @@ final class SettingsTests: XCTestCase {
         """
         let decoded = try JSONDecoder().decode(Settings.self, from: Data(json.utf8))
         XCTAssertTrue(decoded.inputSwitch.isEnabled)
-        XCTAssertEqual(decoded.inputSwitch.leftCommandAction, .eisu)
-        XCTAssertEqual(decoded.inputSwitch.rightCommandAction, .kana)
+        XCTAssertEqual(decoded.inputSwitch.targetModifier, .option)
+        XCTAssertEqual(decoded.inputSwitch.leftAction, .eisu)
+        XCTAssertEqual(decoded.inputSwitch.rightAction, .kana)
         XCTAssertEqual(decoded.inputSwitch.tapThreshold, 0.3, accuracy: 0.0001)
     }
 

@@ -28,14 +28,14 @@ public struct Settings: Codable, Equatable {
     /// 既定設定。
     public static let `default` = Settings()
 
-    /// 入力切替（⌘単押し）と修飾キー二度押し起動が同じ⌘で競合しているか。
+    /// 入力切替と修飾キー二度押し起動が同じ修飾キーで競合しているか。
     ///
-    /// 入力切替は⌘固定のため、二度押し起動も⌘を対象にして両方有効だと同じキーを取り合う。
+    /// 入力切替の対象修飾キーと二度押し起動が同じキー種別を使い、両方有効だと取り合う。
     /// この状態は設定 UI 側で保存を防ぐ（どちらか一方のみ有効にできる）。
     public var hasModifierConflict: Bool {
         inputSwitch.isEnabled
             && modifierDoublePress.isEnabled
-            && modifierDoublePress.usesCommand
+            && modifierDoublePress.bindings.contains { $0.modifier == inputSwitch.targetModifier }
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -96,33 +96,38 @@ public enum InputSwitchAction: String, Codable, Equatable, CaseIterable {
     case kana
 }
 
-/// 「入力切り替え」機能の設定。左右 Command の単押しに、それぞれ送出キー（英数/かな）を割り当てる。
+/// 「入力切り替え」機能の設定。左右修飾キーの単押しに、それぞれ送出キー（英数/かな）を割り当てる。
 public struct InputSwitchSettings: Codable, Equatable {
     /// 機能の有効/無効。
     public var isEnabled: Bool
-    /// 左 Command 単押しで送出するキー。
-    public var leftCommandAction: InputSwitchAction
-    /// 右 Command 単押しで送出するキー。
-    public var rightCommandAction: InputSwitchAction
+    /// 単押しを検知する修飾キーの種別。
+    public var targetModifier: TargetModifier
+    /// 左側単押しで送出するキー。
+    public var leftAction: InputSwitchAction
+    /// 右側単押しで送出するキー。
+    public var rightAction: InputSwitchAction
     /// 単押しとみなす最大押下時間（秒）。
     public var tapThreshold: TimeInterval
 
     public init(
         isEnabled: Bool = false,
-        leftCommandAction: InputSwitchAction = .eisu,
-        rightCommandAction: InputSwitchAction = .kana,
+        targetModifier: TargetModifier = .option,
+        leftAction: InputSwitchAction = .eisu,
+        rightAction: InputSwitchAction = .kana,
         tapThreshold: TimeInterval = 0.5
     ) {
         self.isEnabled = isEnabled
-        self.leftCommandAction = leftCommandAction
-        self.rightCommandAction = rightCommandAction
+        self.targetModifier = targetModifier
+        self.leftAction = leftAction
+        self.rightAction = rightAction
         self.tapThreshold = tapThreshold
     }
 
     private enum CodingKeys: String, CodingKey {
         case isEnabled
-        case leftCommandAction
-        case rightCommandAction
+        case targetModifier
+        case leftAction
+        case rightAction
         case tapThreshold
     }
 
@@ -131,19 +136,30 @@ public struct InputSwitchSettings: Codable, Equatable {
         let defaults = InputSwitchSettings()
         self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
             ?? defaults.isEnabled
-        self.leftCommandAction = try container.decodeIfPresent(InputSwitchAction.self, forKey: .leftCommandAction)
-            ?? defaults.leftCommandAction
-        self.rightCommandAction = try container.decodeIfPresent(InputSwitchAction.self, forKey: .rightCommandAction)
-            ?? defaults.rightCommandAction
+        self.targetModifier = try container.decodeIfPresent(TargetModifier.self, forKey: .targetModifier)
+            ?? defaults.targetModifier
+        self.leftAction = try container.decodeIfPresent(InputSwitchAction.self, forKey: .leftAction)
+            ?? defaults.leftAction
+        self.rightAction = try container.decodeIfPresent(InputSwitchAction.self, forKey: .rightAction)
+            ?? defaults.rightAction
         self.tapThreshold = try container.decodeIfPresent(TimeInterval.self, forKey: .tapThreshold)
             ?? defaults.tapThreshold
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(isEnabled, forKey: .isEnabled)
+        try container.encode(targetModifier, forKey: .targetModifier)
+        try container.encode(leftAction, forKey: .leftAction)
+        try container.encode(rightAction, forKey: .rightAction)
+        try container.encode(tapThreshold, forKey: .tapThreshold)
     }
 
     /// 指定サイドに割り当てられた送出キー。
     public func action(for side: ModifierSide) -> InputSwitchAction {
         switch side {
-        case .left: return leftCommandAction
-        case .right: return rightCommandAction
+        case .left: return leftAction
+        case .right: return rightAction
         }
     }
 }
@@ -352,10 +368,6 @@ public struct ModifierDoublePressSettings: Codable, Equatable {
         return result
     }
 
-    /// いずれかの割り当てが ⌘ を対象にしているか（入力切替との衝突判定に使う）。
-    public var usesCommand: Bool {
-        bindings.contains { $0.modifier == .command }
-    }
 }
 
 /// Slack が最前面のときだけ Esc を Ctrl-G に置き換える設定。

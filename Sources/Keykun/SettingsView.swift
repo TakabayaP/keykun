@@ -195,12 +195,21 @@ struct SafeQuitSettingsTab: View {
     }
 }
 
-/// 「入力切り替え」タブ。左右 Command の単押しに送出キー（英数/かな）を割り当てる。
+/// 「入力切り替え」タブ。左右修飾キーの単押しに送出キー（英数/かな）を割り当てる。
 struct InputSwitchSettingsTab: View {
     @SwiftUI.Binding var settings: InputSwitchSettings
 
     /// 単押しとみなす最大押下時間の候補（秒）。
     private let thresholdOptions: [TimeInterval] = [0.3, 0.5, 0.7, 1.0]
+
+    private var modifierSymbol: String {
+        switch settings.targetModifier {
+        case .command: return "⌘"
+        case .option: return "⌥"
+        case .control: return "⌃"
+        case .shift: return "⇧"
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -209,8 +218,28 @@ struct InputSwitchSettingsTab: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            actionPicker(title: L.string("input_switch.left"), selection: $settings.leftCommandAction)
-            actionPicker(title: L.string("input_switch.right"), selection: $settings.rightCommandAction)
+            HStack(alignment: .firstTextBaseline) {
+                Text(L.string("input_switch.modifier"))
+                Spacer(minLength: 12)
+                Picker("", selection: $settings.targetModifier) {
+                    Text(L.string("modifier_launch.modifier.command")).tag(TargetModifier.command)
+                    Text(L.string("modifier_launch.modifier.option")).tag(TargetModifier.option)
+                    Text(L.string("modifier_launch.modifier.control")).tag(TargetModifier.control)
+                    Text(L.string("modifier_launch.modifier.shift")).tag(TargetModifier.shift)
+                }
+                .labelsHidden()
+                .frame(width: 200)
+                .disabled(!settings.isEnabled)
+            }
+
+            actionPicker(
+                title: L.format("input_switch.left_dynamic", modifierSymbol),
+                selection: $settings.leftAction
+            )
+            actionPicker(
+                title: L.format("input_switch.right_dynamic", modifierSymbol),
+                selection: $settings.rightAction
+            )
 
             HStack(alignment: .firstTextBaseline) {
                 Text(L.string("input_switch.threshold"))
