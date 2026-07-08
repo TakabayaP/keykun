@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let safeQuit = SafeQuitHandler()
     private let inputSwitch = InputSwitchHandler()
     private let modifierDoublePress = ModifierDoublePressHandler()
+    private let slackEscape = SlackEscapeHandler()
 
     private var statusBar: StatusBarController?
     private var settingsWindowController: SettingsWindowController?
@@ -35,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         applySettings(settings)
 
         eventTap.add(safeQuit)
+        eventTap.add(slackEscape)
         eventTap.add(inputSwitch)
         eventTap.add(modifierDoublePress)
 
@@ -65,6 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func applySettings(_ settings: Settings) {
         safeQuit.isEnabled = settings.safeQuit.isEnabled
         safeQuit.interval = settings.safeQuit.interval
+        slackEscape.update(settings.slackEscape)
         inputSwitch.update(settings.inputSwitch)
         modifierDoublePress.update(settings.modifierDoublePress)
     }
