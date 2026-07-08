@@ -59,6 +59,9 @@ struct SettingsView: View {
                     hasConflict: viewModel.settings.hasModifierConflict
                 )
                 .tabItem { Text(L.string("tab.modifier_launch")) }
+
+                SlackEscapeSettingsTab(settings: $viewModel.settings.slackEscape)
+                    .tabItem { Text(L.string("tab.slack_escape")) }
                 // 将来のキー機能タブはここに追加する。
             }
             .padding()
@@ -97,6 +100,30 @@ struct SettingsView: View {
         } message: {
             Text(loginItemError ?? "")
         }
+    }
+}
+
+/// 「Slack Esc」タブ。Slack が最前面のときだけ Esc を Ctrl-G に置き換える。
+struct SlackEscapeSettingsTab: View {
+    @SwiftUI.Binding var settings: SlackEscapeSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Toggle(isOn: $settings.isEnabled) {
+                Text(L.string("slack_escape.enabled"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Text(L.string("slack_escape.description"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 

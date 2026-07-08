@@ -12,6 +12,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(s.inputSwitch.leftAction, .eisu)
         XCTAssertEqual(s.inputSwitch.rightAction, .kana)
         XCTAssertEqual(s.inputSwitch.tapThreshold, 0.5, accuracy: 0.0001)
+        XCTAssertFalse(s.slackEscape.isEnabled)
     }
 
     func testInputSwitchCodableRoundTrip() throws {
@@ -44,17 +45,42 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(decoded.safeQuit.interval, 1.5, accuracy: 0.0001)
         XCTAssertFalse(decoded.inputSwitch.isEnabled)
         XCTAssertEqual(decoded.inputSwitch.leftAction, .eisu)
+        XCTAssertFalse(decoded.slackEscape.isEnabled)
+    }
+
+    func testDecodingLegacySourceKeysAreIgnored() throws {
+        // 旧方式（leftCommandSourceID 等）の JSON でも、未知キーは無視され既定で補完される。
+        let json = """
+        { "inputSwitch": { "isEnabled": true, "leftCommandSourceID": "com.apple.keylayout.ABC", "tapThreshold": 0.3 } }
+        """
+        let decoded = try JSONDecoder().decode(Settings.self, from: Data(json.utf8))
+        XCTAssertTrue(decoded.inputSwitch.isEnabled)
+        XCTAssertEqual(decoded.inputSwitch.targetModifier, .option)
+        XCTAssertEqual(decoded.inputSwitch.leftAction, .eisu)
+        XCTAssertEqual(decoded.inputSwitch.rightAction, .kana)
+        XCTAssertEqual(decoded.inputSwitch.tapThreshold, 0.3, accuracy: 0.0001)
     }
 
     func testCodableRoundTrip() throws {
         var s = Settings.default
         s.safeQuit.isEnabled = false
         s.safeQuit.interval = 1.5
+        s.slackEscape.isEnabled = true
 
         let data = try JSONEncoder().encode(s)
         let decoded = try JSONDecoder().decode(Settings.self, from: data)
 
         XCTAssertEqual(decoded, s)
+    }
+
+    func testSlackEscapeCodableRoundTrip() throws {
+        var s = Settings.default
+        s.slackEscape.isEnabled = true
+
+        let data = try JSONEncoder().encode(s)
+        let decoded = try JSONDecoder().decode(Settings.self, from: data)
+
+        XCTAssertEqual(decoded.slackEscape, SlackEscapeSettings(isEnabled: true))
     }
 
     func testDecodingEmptyObjectFallsBackToDefaults() throws {

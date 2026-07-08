@@ -39,6 +39,7 @@
 "tab.safe_quit" = "Safe Quit";
 "tab.input_switch" = "Input Switch";
 "tab.modifier_launch" = "Launch App";
+"tab.slack_escape" = "Slack Esc";
 "tab.general" = "General";
 
 /* General tab */
@@ -76,6 +77,10 @@
 "modifier_launch.choose_app" = "Choose app…";
 "modifier_launch.conflict" = "⌘ is already used by Input Switch. Only one of them can be enabled at a time.";
 "modifier_launch.description" = "Tap and release the chosen modifier key alone twice (no other keys) to launch the assigned app. With “Both”, double-tapping either the left or right key launches it (left and right are tracked separately, so a left-then-right mix does not count). If that app is already frontmost, it is hidden instead (toggle). Use a different key from Input Switch to avoid conflicts. The key still works normally in combinations.";
+
+/* Slack Esc tab */
+"slack_escape.enabled" = "Replace Esc in Slack for SKK cancellation";
+"slack_escape.description" = "When Slack is frontmost, plain Esc is consumed before Slack sees it and Ctrl-G is sent instead. This is intended for SKK cancellation.";
 
 /* Common units */
 "common.seconds" = "%.1f sec";
