@@ -18,8 +18,7 @@ final class SettingsStoreTests: XCTestCase {
         let store = SettingsStore(url: url)
 
         var s = Settings.default
-        s.safeQuit.isEnabled = false
-        s.safeQuit.interval = 0.5
+        s.inputSwitch.isEnabled = true
         try store.save(s)
 
         XCTAssertEqual(store.load(), s)

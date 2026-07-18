@@ -2,43 +2,15 @@
 "menu.settings" = "Settings…";
 "menu.check_permission" = "Check Accessibility Permission";
 "menu.version" = "Keykun %@";
-"menu.check_update" = "Check for Updates…";
-"menu.install_update" = "Install Update %@…";
 "menu.quit" = "Quit Keykun";
 
-/* Menu bar */
-"menu_bar.local" = "Local";
-
-/* Update flow */
-"update.latest" = "You’re up to date (v%@).";
-"update.check_failed" = "Failed to check for updates.\n%@";
-"update.available.title" = "Version %@ is available";
-"update.available.body" = "Current: v%@\nUpdating will restart the app.";
-"update.button.update" = "Update";
-"update.button.open_release" = "Open Release Page";
-"update.failed" = "Update failed.\n%@";
 "alert.error.title" = "Error";
-
-/* Update service errors */
-"error.fetch_release_http" = "Failed to fetch release info (HTTP %d).";
-"error.parse_release" = "Failed to parse release info.";
-"error.no_zip_asset" = "No zip asset found in the release.";
-"error.download_http" = "Download failed (HTTP %d).";
-
-/* Self-updater errors */
-"error.not_writable" = "Cannot write to the app location: %@. A manual update is required.";
-"error.no_zip" = "No zip found in the release.";
-"error.command_failed" = "Update command failed: %@";
-"error.no_app_in_archive" = "No .app was found in the downloaded archive.";
-"error.bundle_id_mismatch" = "The downloaded .app has a mismatched identifier.";
 
 /* Settings window */
 "settings.window.title" = "Keykun Settings";
 
 /* Tabs */
-"tab.safe_quit" = "Safe Quit";
 "tab.input_switch" = "Input Switch";
-"tab.modifier_launch" = "Launch App";
 "tab.slack_escape" = "Slack Esc";
 "tab.general" = "General";
 
@@ -46,12 +18,6 @@
 "settings.launch_at_login" = "Launch at Login";
 "settings.version" = "Version %@";
 "login_item.requires_approval" = "“Login Items” is disabled in System Settings. Allow Keykun under System Settings ＞ General ＞ Login Items.";
-
-/* Safe Quit tab */
-"safe_quit.enabled" = "Require pressing ⌘Q twice to quit";
-"safe_quit.interval" = "Time window for the second press";
-"safe_quit.interval.seconds" = "%.1f sec";
-"safe_quit.description" = "Press ⌘Q once to show a reminder; press ⌘Q again within the time window to quit.";
 
 /* Input Switch tab */
 "input_switch.enabled" = "Switch input mode with a single modifier tap";
@@ -64,19 +30,11 @@
 "input_switch.action.kana" = "Kana key (Japanese)";
 "input_switch.description" = "Tap and release the chosen modifier key alone (no other keys) to send the Eisu/Kana key, switching the IME mode (works reliably regardless of the current input source). The key still works normally in combinations.";
 
-/* Launch App tab (modifier double-tap) */
-"modifier_launch.enabled" = "Launch an app by double-tapping a modifier key";
-"modifier_launch.modifier.command" = "⌘ Command";
-"modifier_launch.modifier.option" = "⌥ Option";
-"modifier_launch.modifier.control" = "⌃ Control";
-"modifier_launch.modifier.shift" = "⇧ Shift";
-"modifier_launch.side.left" = "Left";
-"modifier_launch.side.right" = "Right";
-"modifier_launch.side.both" = "Both";
-"modifier_launch.add" = "Add";
-"modifier_launch.choose_app" = "Choose app…";
-"modifier_launch.conflict" = "⌘ is already used by Input Switch. Only one of them can be enabled at a time.";
-"modifier_launch.description" = "Tap and release the chosen modifier key alone twice (no other keys) to launch the assigned app. With “Both”, double-tapping either the left or right key launches it (left and right are tracked separately, so a left-then-right mix does not count). If that app is already frontmost, it is hidden instead (toggle). Use a different key from Input Switch to avoid conflicts. The key still works normally in combinations.";
+/* Modifier key names */
+"modifier.command" = "⌘ Command";
+"modifier.option" = "⌥ Option";
+"modifier.control" = "⌃ Control";
+"modifier.shift" = "⇧ Shift";
 
 /* Slack Esc tab */
 "slack_escape.enabled" = "Replace Esc in Slack for SKK cancellation";
@@ -85,12 +43,9 @@
 /* Common units */
 "common.seconds" = "%.1f sec";
 
-/* HUD */
-"hud.press_again" = "Press ⌘Q again to quit";
-
 /* Permission alert */
 "permission.alert.title" = "Accessibility permission required";
-"permission.alert.body" = "Keykun needs to monitor key input to detect the double ⌘Q.\nAllow Keykun under System Settings ＞ Privacy & Security ＞ Accessibility. It activates automatically once allowed.";
+"permission.alert.body" = "Keykun needs to monitor key input for its enabled features.\nAllow Keykun under System Settings ＞ Privacy & Security ＞ Accessibility. It activates automatically once allowed.";
 "permission.button.open" = "Open Settings";
 "permission.button.later" = "Later";
 

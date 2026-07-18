@@ -4,84 +4,33 @@ import Foundation
 ///
 /// 前方/後方互換のため Codable は欠損キーを既定値で補完する（古い/新しい設定ファイルでも壊れない）。
 public struct Settings: Codable, Equatable {
-    /// 「安全な Quit」（⌘Q 二度押し）機能の設定。
-    public var safeQuit: SafeQuitSettings
     /// 「入力切り替え」（左右⌘単押し）機能の設定。
     public var inputSwitch: InputSwitchSettings
-    /// 「修飾キー二度押しでアプリ起動」機能の設定。
-    public var modifierDoublePress: ModifierDoublePressSettings
     /// 「Slack の Esc を SKK キャンセルへ変換」機能の設定。
     public var slackEscape: SlackEscapeSettings
 
     public init(
-        safeQuit: SafeQuitSettings = SafeQuitSettings(),
         inputSwitch: InputSwitchSettings = InputSwitchSettings(),
-        modifierDoublePress: ModifierDoublePressSettings = ModifierDoublePressSettings(),
         slackEscape: SlackEscapeSettings = SlackEscapeSettings()
     ) {
-        self.safeQuit = safeQuit
         self.inputSwitch = inputSwitch
-        self.modifierDoublePress = modifierDoublePress
         self.slackEscape = slackEscape
     }
 
     /// 既定設定。
     public static let `default` = Settings()
 
-    /// 入力切替と修飾キー二度押し起動が同じ修飾キーで競合しているか。
-    ///
-    /// 入力切替の対象修飾キーと二度押し起動が同じキー種別を使い、両方有効だと取り合う。
-    /// この状態は設定 UI 側で保存を防ぐ（どちらか一方のみ有効にできる）。
-    public var hasModifierConflict: Bool {
-        inputSwitch.isEnabled
-            && modifierDoublePress.isEnabled
-            && modifierDoublePress.bindings.contains { $0.modifier == inputSwitch.targetModifier }
-    }
-
     private enum CodingKeys: String, CodingKey {
-        case safeQuit
         case inputSwitch
-        case modifierDoublePress
         case slackEscape
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.safeQuit = try container.decodeIfPresent(SafeQuitSettings.self, forKey: .safeQuit)
-            ?? SafeQuitSettings()
         self.inputSwitch = try container.decodeIfPresent(InputSwitchSettings.self, forKey: .inputSwitch)
             ?? InputSwitchSettings()
-        self.modifierDoublePress = try container.decodeIfPresent(ModifierDoublePressSettings.self, forKey: .modifierDoublePress)
-            ?? ModifierDoublePressSettings()
         self.slackEscape = try container.decodeIfPresent(SlackEscapeSettings.self, forKey: .slackEscape)
             ?? SlackEscapeSettings()
-    }
-}
-
-/// 「安全な Quit」機能の設定。
-public struct SafeQuitSettings: Codable, Equatable {
-    /// 機能の有効/無効。
-    public var isEnabled: Bool
-    /// ⌘Q の2回目を受け付ける猶予時間（秒）。
-    public var interval: TimeInterval
-
-    public init(isEnabled: Bool = true, interval: TimeInterval = 1.0) {
-        self.isEnabled = isEnabled
-        self.interval = interval
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case isEnabled
-        case interval
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let defaults = SafeQuitSettings()
-        self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
-            ?? defaults.isEnabled
-        self.interval = try container.decodeIfPresent(TimeInterval.self, forKey: .interval)
-            ?? defaults.interval
     }
 }
 
@@ -164,7 +113,7 @@ public struct InputSwitchSettings: Codable, Equatable {
     }
 }
 
-/// 二度押しの対象とする修飾キーの種別。
+/// 入力切り替えの対象とする修飾キーの種別。
 /// 左右の判別に使う device 依存フラグビット（IOLLEvent.h の NX_DEVICE*KEYMASK）を持つ。
 public enum TargetModifier: String, Codable, Equatable, CaseIterable {
     case command
@@ -193,182 +142,6 @@ public enum TargetModifier: String, Codable, Equatable, CaseIterable {
     }
 }
 
-/// 起動対象アプリ。bundle identifier が空なら未割り当て。
-public struct AppTarget: Codable, Equatable {
-    /// 起動するアプリの bundle identifier。空文字なら未割り当て。
-    public var bundleIdentifier: String
-    /// UI 表示用のアプリ名。
-    public var displayName: String
-
-    public init(bundleIdentifier: String = "", displayName: String = "") {
-        self.bundleIdentifier = bundleIdentifier
-        self.displayName = displayName
-    }
-
-    /// アプリが割り当て済みか。
-    public var isAssigned: Bool { !bundleIdentifier.isEmpty }
-
-    private enum CodingKeys: String, CodingKey {
-        case bundleIdentifier
-        case displayName
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let defaults = AppTarget()
-        self.bundleIdentifier = try container.decodeIfPresent(String.self, forKey: .bundleIdentifier)
-            ?? defaults.bundleIdentifier
-        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
-            ?? defaults.displayName
-    }
-}
-
-/// 二度押し検知の同一性となる物理修飾キー（種別 + 左右）。
-public struct ModifierKey: Hashable, Codable {
-    /// 修飾キーの種別（⌘/⌥/⌃/⇧）。
-    public var modifier: TargetModifier
-    /// 左右。
-    public var side: ModifierSide
-
-    public init(modifier: TargetModifier, side: ModifierSide) {
-        self.modifier = modifier
-        self.side = side
-    }
-
-    /// この物理キーに対応する device 依存フラグビット。
-    public var deviceBit: UInt64 {
-        switch side {
-        case .left: return modifier.leftBit
-        case .right: return modifier.rightBit
-        }
-    }
-}
-
-/// 割り当てが反応する左右。物理キー識別子（`ModifierSide`）と異なり「両方（どちらでも）」を持つ。
-///
-/// `ModifierSide` に `.both` を足すと `ModifierKey.deviceBit` が「存在しない両方ビット」を扱う羽目になるため、
-/// 割り当て専用の別 enum として分離する。`.both` はハンドラに渡る前に左右2つの `ModifierKey` へ展開する。
-/// raw value は旧 JSON 互換のため `ModifierSide` と一致させる（`"left"`/`"right"`）。
-public enum LaunchSide: String, Codable, Equatable, CaseIterable {
-    case left
-    case right
-    case both
-}
-
-/// 「特定の物理修飾キーの二度押し → アプリ起動」を1件表す割り当て。
-public struct ModifierLaunchBinding: Codable, Equatable, Identifiable {
-    /// SwiftUI のリスト識別用 ID（永続化もされる）。
-    public var id: UUID
-    /// 対象の修飾キー種別。
-    public var modifier: TargetModifier
-    /// 反応する左右（`.both` は左右どちらの二度押しでも発火）。
-    public var side: LaunchSide
-    /// 起動するアプリ。
-    public var app: AppTarget
-
-    public init(
-        id: UUID = UUID(),
-        modifier: TargetModifier = .command,
-        side: LaunchSide = .left,
-        app: AppTarget = AppTarget()
-    ) {
-        self.id = id
-        self.modifier = modifier
-        self.side = side
-        self.app = app
-    }
-
-    /// この割り当てが指定の物理キーに反応するか。`.both` は左右どちらにも反応する。
-    public func matches(_ key: ModifierKey) -> Bool {
-        modifier == key.modifier && (side == .both || side.rawValue == key.side.rawValue)
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case modifier
-        case side
-        case app
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let defaults = ModifierLaunchBinding()
-        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        self.modifier = try container.decodeIfPresent(TargetModifier.self, forKey: .modifier)
-            ?? defaults.modifier
-        self.side = try container.decodeIfPresent(LaunchSide.self, forKey: .side)
-            ?? defaults.side
-        self.app = try container.decodeIfPresent(AppTarget.self, forKey: .app)
-            ?? defaults.app
-    }
-}
-
-/// 「修飾キー二度押し」のタイミング定数。
-/// 単押し判定時間・二度押し猶予時間はユーザーには分かりにくいため設定 UI からは外し、ここで固定する。
-public enum ModifierDoublePressTiming {
-    /// 単押しとみなす最大押下時間（秒）。
-    public static let tapThreshold: TimeInterval = 0.3
-    /// 二度押しの2回目を受け付ける猶予時間（秒）。
-    public static let interval: TimeInterval = 0.3
-}
-
-/// 「修飾キー二度押しでアプリ起動」機能の設定。
-/// 任意の (修飾キー種別, 左右) に対してアプリを割り当てる複数の割り当てを持つ。
-///
-/// 単押し判定時間・二度押し猶予時間は分かりにくいため UI からは外し、`ModifierDoublePressTiming` で固定する。
-public struct ModifierDoublePressSettings: Codable, Equatable {
-    /// 機能の有効/無効。
-    public var isEnabled: Bool
-    /// 各物理キーへのアプリ割り当て。
-    public var bindings: [ModifierLaunchBinding]
-
-    public init(
-        isEnabled: Bool = false,
-        bindings: [ModifierLaunchBinding] = []
-    ) {
-        self.isEnabled = isEnabled
-        self.bindings = bindings
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case isEnabled
-        case bindings
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let defaults = ModifierDoublePressSettings()
-        self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
-            ?? defaults.isEnabled
-        self.bindings = try container.decodeIfPresent([ModifierLaunchBinding].self, forKey: .bindings)
-            ?? defaults.bindings
-    }
-
-    /// 指定した物理キーに割り当てられた、アプリが設定済みの起動対象。無ければ nil。
-    public func app(for key: ModifierKey) -> AppTarget? {
-        bindings.first { $0.matches(key) && $0.app.isAssigned }?.app
-    }
-
-    /// 監視対象（アプリ割り当て済み）の物理キー一覧。`.both` は左右 2 キーへ展開し、重複は除く。
-    public var watchedKeys: [ModifierKey] {
-        var seen = Set<ModifierKey>()
-        var result: [ModifierKey] = []
-        for binding in bindings where binding.app.isAssigned {
-            let sides: [ModifierSide]
-            switch binding.side {
-            case .left: sides = [.left]
-            case .right: sides = [.right]
-            case .both: sides = [.left, .right]
-            }
-            for side in sides {
-                let key = ModifierKey(modifier: binding.modifier, side: side)
-                if seen.insert(key).inserted { result.append(key) }
-            }
-        }
-        return result
-    }
-
-}
 
 /// Slack が最前面のときだけ Esc を Ctrl-G に置き換える設定。
 ///

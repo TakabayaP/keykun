@@ -1,121 +1,78 @@
 # Keykun
 
-macOS 用のキー操作カスタマイズツール（メニューバー常駐アプリ）。
-第一の機能は **「安全な Quit」** ＝ `⌘Q` を **2回押さないとアプリが終了しない** ようにするもので、
-Karabiner-Elements の「Quit application by pressing command-q twice」設定と同じ挙動を、
-Karabiner なしの単独アプリで実現します。今後さまざまなキー設定機能を追加していく前提の構成です。
+macOS 用のキー操作カスタマイズツール（メニューバー常駐アプリ）。現在は次の機能に絞っています。
 
-## 仕組み（安全な Quit）
+- 左右の修飾キー単押しによる入力モード切り替え（英数 / かな）
+- Slack が最前面のときの Esc → Ctrl-G 置き換え（SKK 向け）
+- ログイン時の自動起動
 
-`CGEventTap` で `keyDown` を横取りし、
-
-1. **1回目の `⌘Q`** … イベントを握りつぶし、HUD「もう一度 ⌘Q で終了」を表示
-2. **判定時間内の2回目の `⌘Q`** … そのまま通す（＝最前面のアプリが終了）
-3. **タイムアウト** … 解除して通常状態へ戻る
-
-判定そのもの（状態機械）は AppKit/CGEventTap に依存しない純粋ロジック `KeykunCore.DoublePressDecider`
-に切り出してあり、単体テスト可能です。修飾キーは `command` のみを対象とし、`caps lock` は無視します。
+キー入力は `CGEventTap` で監視します。アクセシビリティ権限が必要です。
 
 ## 設定
 
-メニューバーの `⌘` アイコン →「設定…」で**設定ダイアログ**を開きます（表示中は Dock にも出ます）。
-「**一般**」タブで **ログイン時の自動起動**（`SMAppService`）を切り替えられます。
-機能ごとのタブもあり、「**安全な Quit**」タブには以下があります。
+メニューバーのアイコン →「設定…」で設定ダイアログを開きます。
 
-- 有効 / 無効
-- 判定時間（0.5 / 1.0 / 1.5 / 2.0 秒）
+設定は `~/Library/Application Support/Keykun/settings.json` に保存されます。過去のバージョンで保存された
+`safeQuit` や `modifierDoublePress` などの削除済み設定キーは無視されます。
 
-設定は `~/Library/Application Support/Keykun/settings.json` に保存されます。
-今後のキー機能はタブを追加する形で増やしていきます。
+### 入力切り替え
 
-### 入力切り替え（左右 ⌘ 単押し）
+「入力切り替え」タブで、対象の修飾キーを単独で押して離したときに送るキーを設定できます。
+組み合わせ操作では通常どおり修飾キーとして機能します。
 
-「**入力切り替え**」タブで、**左 ⌘ / 右 ⌘ を単独で押して離す**（他キーと一緒に押さない）と、
-割り当てた**英数キー / かなキー**を送出して IME のモードを切り替えます（Karabiner と同じ方式）。
-`⌘C` などの組み合わせでは通常どおり修飾キーとして機能し、**単押しのときだけ**発火します（長押しでも発火しません）。
+- 左右それぞれに「英数」「かな」「なし」を割り当て
+- 単押しの判定時間を変更
+- 既定は無効
 
-- 左 ⌘ / 右 ⌘ それぞれに「英数キー（English）/ かなキー（日本語）/ なし」を割り当て（既定: 左＝英数・右＝かな）
-- 入力ソース選択（TISSelectInputSource）ではなく**英数/かなキー送出**なので、azooKey 等の IME でも
-  現在の入力ソースに関係なく確実に切り替わる
-- 既定は**無効**（グローバル挙動を変えるため、明示的に有効化して使用）
-- 「単押し」の判定時間（既定 0.5 秒、0.3〜1.0 秒で変更可）
+### Slack Esc
 
-### Slack Esc（SKK 向け）
-
-「**Slack Esc**」タブで有効にすると、Slack が最前面のときだけ修飾キーなしの `Esc` を握りつぶし、
-代わりに `Ctrl-G` を送ります。SKK のキャンセル操作を動かしつつ、Slack 側の `Esc` ショートカットが
-発火するのを避けるための設定です。
+「Slack Esc」タブで有効にすると、Slack が最前面のときだけ修飾キーなしの Esc を握りつぶし、
+代わりに Ctrl-G を送ります。SKK のキャンセル操作を Slack の Esc ショートカットと分離するための設定です。
 
 ## 多言語対応
 
-GUI は **日本語・英語**に対応し、OS の優先言語に追従します（既定 `en`）。
-文字列は `Sources/Keykun/Resources/{en,ja}.lproj/Localizable.strings` に定義し、`L.string` / `L.format` で参照します。
-詳細・追加ルールは [CLAUDE.md](CLAUDE.md) を参照。
+GUI は日本語・英語に対応します。文字列は `Sources/Keykun/Resources/{en,ja}.lproj/Localizable.strings` に定義し、
+`L.string` / `L.format` で参照します。詳細な開発ルールは [CLAUDE.md](CLAUDE.md) を参照してください。
 
 ## 構成
 
-テスト可能なコアとアプリ本体を SwiftPM で分離しています（snapperkun と同様の構成）。
+テスト可能なコアとアプリ本体を SwiftPM で分離しています。
 
 ```
 Sources/
-  KeykunCore/               純粋ロジック（テスト対象）
-    DoublePressDecider.swift   ⌘Q 二度押し判定の状態機械
-    ModifierTapDetector.swift  左右⌘の単押し検知
-    Settings.swift             設定モデル（機能ごとにサブ構造体）
+  KeykunCore/               純粋ロジックと設定モデル
+    ModifierTapDetector.swift 左右修飾キーの単押し検知
+    Settings.swift             設定モデル
     SettingsStore.swift        JSON 永続化
   Keykun/                   アプリ本体
     main.swift / AppDelegate.swift
-    KeyEventTap.swift           CGEventTap を共有し各ハンドラへ配信
-    SafeQuitHandler.swift       安全な Quit（⌘Q 二度押し）
-    InputSwitchHandler.swift    入力切り替え（左右⌘単押し）
-    SlackEscapeHandler.swift    Slack 前面時の Esc→Ctrl-G 置き換え（SKK 向け）
-    InputModeKey.swift          英数/かなキーを HID レベルに送出
+    KeyEventTap.swift           CGEventTap の共有
+    InputSwitchHandler.swift    入力切り替え
+    SlackEscapeHandler.swift    Slack 前面時の Esc→Ctrl-G
+    InputModeKey.swift          英数/かなキー送出
     AccessibilityPermission.swift
-    StatusBarController.swift   メニュー（入口のみ）
-    SettingsWindowController.swift / SettingsView.swift   設定ダイアログ（TabView）
-    HUDController.swift
-    Localization.swift          L ヘルパー
+    StatusBarController.swift   メニューバー UI
+    SettingsWindowController.swift / SettingsView.swift
+    Localization.swift
     Resources/{en,ja}.lproj/Localizable.strings
-Tests/KeykunCoreTests/      DoublePressDecider / ModifierTapDetector / Settings / SettingsStore のテスト
-Resources/Info.plist        バンドル情報（LSUIElement で Dock 非表示）
+Tests/KeykunCoreTests/      コアロジック・設定・永続化のテスト
+Resources/Info.plist        バンドル情報
 Scripts/bundle.sh           .app 生成 + 署名
 ```
 
 ## ビルド・テスト
 
 ```sh
-swift test                 # コアロジックのテスト
-bash Scripts/bundle.sh     # Keykun.app を生成（既定: release + Developer ID 署名）
+swift build
+swift test
+bash Scripts/bundle.sh
 ```
 
-### 署名
+ビルド成果物は `Keykun.app`（Bundle ID: `com.mtkg.keykun`）です。
 
-`Scripts/bundle.sh` は既定で **Developer ID Application（Developer Team ID: `G72M73C546`）** で署名します。
-**安定署名にすることで、再ビルドしても付与済みのアクセシビリティ許可（TCC）が保持されます**。
+## インストール
 
-| 変数 | 既定 | 用途 |
-|---|---|---|
-| `SIGN_IDENTITY` | `Developer ID Application: Masaki TAKAGI (G72M73C546)` | codesign の署名アイデンティティ |
-| `TEAM_ID` | `G72M73C546` | Developer Team ID |
-| `AD_HOC=1` | （無効） | 証明書が無い環境向けにアドホック署名へ切替 |
+ビルドした `Keykun.app` を `/Applications` に置いて起動します。初回起動時に、システム設定の
+「プライバシーとセキュリティ › アクセシビリティ」で Keykun を許可してください。
 
-## インストール / リリース
-
-ビルド済みアプリは [Releases](../../releases) から `Keykun.zip` をダウンロードできます。
-解凍して `/Applications` に置いて起動してください。
-
-リリースは GitHub Actions（`.github/workflows/release.yml`）が自動化しています。
-`Resources/Info.plist` の `CFBundleShortVersionString` を上げて `main` へ push すると、
-`v<version>` のリリースが作成されます（同一バージョンのリリースが既にあればスキップ）。
-配布用の Developer ID 署名・公証の設定は [docs/SIGNING.md](docs/SIGNING.md) を参照してください
-（Secrets 未設定時は ad-hoc 署名でリリースされます）。
-
-## 使い方
-
-1. `open Keykun.app` で起動
-2. 初回はアクセシビリティの許可を求められます
-   「システム設定 › プライバシーとセキュリティ › アクセシビリティ」で **Keykun** を許可
-   （許可後は再起動不要で自動的に有効になります）
-3. メニューバーの `⌘` アイコン →「設定…」で動作を調整できます
-
-`/Applications` に置いて使う場合は `cp -r Keykun.app /Applications/` でコピーしてください。
+アップデートは自動確認しません。必要なときにこのリポジトリを更新して再ビルドします。

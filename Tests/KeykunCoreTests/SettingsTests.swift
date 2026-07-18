@@ -4,8 +4,6 @@ import XCTest
 final class SettingsTests: XCTestCase {
     func testDefaultValues() {
         let s = Settings.default
-        XCTAssertTrue(s.safeQuit.isEnabled)
-        XCTAssertEqual(s.safeQuit.interval, 1.0, accuracy: 0.0001)
         // 入力切替は既定で無効。対象は Option、割り当ては左=英数・右=かな。
         XCTAssertFalse(s.inputSwitch.isEnabled)
         XCTAssertEqual(s.inputSwitch.targetModifier, .option)
@@ -42,7 +40,6 @@ final class SettingsTests: XCTestCase {
         { "safeQuit": { "isEnabled": true, "interval": 1.5 } }
         """
         let decoded = try JSONDecoder().decode(Settings.self, from: Data(json.utf8))
-        XCTAssertEqual(decoded.safeQuit.interval, 1.5, accuracy: 0.0001)
         XCTAssertFalse(decoded.inputSwitch.isEnabled)
         XCTAssertEqual(decoded.inputSwitch.leftAction, .eisu)
         XCTAssertFalse(decoded.slackEscape.isEnabled)
@@ -63,8 +60,6 @@ final class SettingsTests: XCTestCase {
 
     func testCodableRoundTrip() throws {
         var s = Settings.default
-        s.safeQuit.isEnabled = false
-        s.safeQuit.interval = 1.5
         s.slackEscape.isEnabled = true
 
         let data = try JSONEncoder().encode(s)
@@ -90,13 +85,15 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(decoded, Settings.default)
     }
 
-    func testDecodingPartialSafeQuitFillsMissingKeys() throws {
-        // safeQuit に interval だけある JSON → isEnabled は既定値で補完。
+    func testDecodingRemovedFeatureKeysAreIgnored() throws {
+        // 削除済み機能の設定が残った JSON でも読み込みは継続できる。
         let json = """
-        { "safeQuit": { "interval": 2.0 } }
+        {
+          "safeQuit": { "isEnabled": true, "interval": 2.0 },
+          "modifierDoublePress": { "isEnabled": true, "bindings": [] }
+        }
         """
         let decoded = try JSONDecoder().decode(Settings.self, from: Data(json.utf8))
-        XCTAssertEqual(decoded.safeQuit.interval, 2.0, accuracy: 0.0001)
-        XCTAssertTrue(decoded.safeQuit.isEnabled)
+        XCTAssertEqual(decoded, Settings.default)
     }
 }

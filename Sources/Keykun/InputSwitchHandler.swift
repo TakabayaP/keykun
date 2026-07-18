@@ -36,35 +36,83 @@ final class InputSwitchHandler: KeyEventHandler {
         guard type == .flagsChanged else { return false }
 
         let flags = event.flags
-        let raw = flags.rawValue
         let target = settings.targetModifier
-        let newLeft = (raw & target.leftBit) != 0
-        let newRight = (raw & target.rightBit) != 0
         let otherModifiers = hasOtherModifiers(flags: flags, excluding: target)
 
-        if newLeft != leftDown {
-            if newLeft {
-                detector.commandDown(side: .left, otherModifiersHeld: rightDown || otherModifiers, now: now)
-            } else if let side = detector.commandUp(side: .left, now: now) {
-                fire(side)
+        // flagsChanged のキーコードは左右の物理キーを直接示す。
+        // device 依存の flags ビットだけに頼ると、キーボードや macOS のイベント経路によって
+        // 左右を正しく判定できないことがある。
+        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+        if let side = modifierSide(for: keyCode, target: target) {
+            let isDown = targetFlag(for: target).intersection(flags).isEmpty == false
+            switch side {
+            case .left:
+                if isDown != leftDown {
+                    if isDown {
+                        detector.commandDown(side: .left, otherModifiersHeld: rightDown || otherModifiers, now: now)
+                    } else if let firedSide = detector.commandUp(side: .left, now: now) {
+                        fire(firedSide)
+                    }
+                    leftDown = isDown
+                }
+            case .right:
+                if isDown != rightDown {
+                    if isDown {
+                        detector.commandDown(side: .right, otherModifiersHeld: leftDown || otherModifiers, now: now)
+                    } else if let firedSide = detector.commandUp(side: .right, now: now) {
+                        fire(firedSide)
+                    }
+                    rightDown = isDown
+                }
             }
-            leftDown = newLeft
         }
 
-        if newRight != rightDown {
-            if newRight {
-                detector.commandDown(side: .right, otherModifiersHeld: leftDown || otherModifiers, now: now)
-            } else if let side = detector.commandUp(side: .right, now: now) {
-                fire(side)
-            }
-            rightDown = newRight
-        }
-
-        if otherModifiers {
+        // 対象キーを押している間に別の修飾キーが加わったらコンボ扱いにする。
+        if otherModifiers && (leftDown || rightDown) {
             detector.contaminate()
         }
 
         return false
+    }
+
+    /// flagsChanged イベントのキーコードから対象修飾キーの左右を判定する。
+    private func modifierSide(for keyCode: Int64, target: TargetModifier) -> ModifierSide? {
+        switch target {
+        case .command:
+            switch keyCode {
+            case 55: return .left       // kVK_Command
+            case 54: return .right      // kVK_RightCommand
+            default: return nil
+            }
+        case .option:
+            switch keyCode {
+            case 58: return .left       // kVK_Option
+            case 61: return .right      // kVK_RightOption
+            default: return nil
+            }
+        case .control:
+            switch keyCode {
+            case 59: return .left       // kVK_Control
+            case 62: return .right      // kVK_RightControl
+            default: return nil
+            }
+        case .shift:
+            switch keyCode {
+            case 56: return .left       // kVK_Shift
+            case 60: return .right      // kVK_RightShift
+            default: return nil
+            }
+        }
+    }
+
+    /// 対象修飾キーが現在押されているかを示す通常のイベントフラグ。
+    private func targetFlag(for target: TargetModifier) -> CGEventFlags {
+        switch target {
+        case .command: return .maskCommand
+        case .option: return .maskAlternate
+        case .control: return .maskControl
+        case .shift: return .maskShift
+        }
     }
 
     /// 対象修飾キー以外の修飾キーが押されているか判定する。
