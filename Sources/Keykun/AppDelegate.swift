@@ -12,9 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // 共有イベントタップと各機能ハンドラ。
     private let eventTap = KeyEventTap()
-    private let safeQuit = SafeQuitHandler()
     private let inputSwitch = InputSwitchHandler()
-    private let modifierDoublePress = ModifierDoublePressHandler()
     private let slackEscape = SlackEscapeHandler()
 
     private var statusBar: StatusBarController?
@@ -23,27 +21,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var kuntraykunBridge: KuntraykunBridge?
     private var settings = Settings.default
 
-    // アップデート関連。
-    private let updateService = UpdateService()
-    private lazy var selfUpdater = SelfUpdater(service: updateService)
-    private var availableRelease: ReleaseInfo?
-    /// 定期的なアップデート監視の間隔（1時間）。GitHub 未認証 API のレート制限（60回/時）に十分余裕。
-    private let updateCheckInterval: TimeInterval = 60 * 60
-    private var updateTimer: Timer?
-
     func applicationDidFinishLaunching(_ notification: Notification) {
         settings = store.load()
         applySettings(settings)
 
-        eventTap.add(safeQuit)
         eventTap.add(slackEscape)
         eventTap.add(inputSwitch)
-        eventTap.add(modifierDoublePress)
 
         statusBar = StatusBarController(
             openSettings: { [weak self] in self?.openSettings() },
             checkPermission: { AccessibilityPermission.requestIfNeeded() },
-            checkForUpdate: { [weak self] in self?.startUpdateCheck(interactive: true) },
             quit: { NSApp.terminate(nil) }
         )
 
@@ -56,20 +43,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         bridge.start()
         kuntraykunBridge = bridge
-
-        // 起動時にサイレントで更新チェック（あればメニュー文言を変更＋赤バッジ表示）。
-        startUpdateCheck(interactive: false)
-        // 以降は定期的に監視し、スリープ復帰時にも即チェックする。
-        scheduleUpdateChecks()
     }
 
     /// 設定を各ハンドラに反映する。
     private func applySettings(_ settings: Settings) {
-        safeQuit.isEnabled = settings.safeQuit.isEnabled
-        safeQuit.interval = settings.safeQuit.interval
         slackEscape.update(settings.slackEscape)
         inputSwitch.update(settings.inputSwitch)
-        modifierDoublePress.update(settings.modifierDoublePress)
     }
 
     private func openSettings() {
@@ -124,102 +103,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - アップデート
-
-    /// アップデートを定期的に監視する。Timer はスリープ中は発火しないため、
-    /// `NSWorkspace.didWakeNotification` を購読してスリープ復帰時にも即チェックする。
-    private func scheduleUpdateChecks() {
-        let timer = Timer.scheduledTimer(withTimeInterval: updateCheckInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.startUpdateCheck(interactive: false) }
-        }
-        timer.tolerance = updateCheckInterval * 0.1  // 省電力のためコアレッシングを許可。
-        updateTimer = timer
-
-        NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.startUpdateCheck(interactive: false) }
-        }
-    }
-
-    /// 最新リリースを取得してバージョン比較する。
-    /// interactive=false: 起動時のサイレントチェック（結果はメニュー文言に反映するのみ）。
-    /// interactive=true : メニューからの手動チェック（結果をダイアログで提示）。
-    private func startUpdateCheck(interactive: Bool) {
-        Task { @MainActor in
-            do {
-                let release = try await updateService.fetchLatestRelease()
-                let isNewer = VersionComparator.isNewer(
-                    tag: release.tagName, than: UpdateService.currentVersion)
-                if isNewer {
-                    availableRelease = release
-                    statusBar?.setUpdateAvailable(tag: release.tagName)
-                } else {
-                    availableRelease = nil
-                    statusBar?.clearUpdateAvailable()
-                }
-                // kuntraykun にもアップデート有無を伝える（集約バッジ/赤丸用）。
-                kuntraykunBridge?.reportUpdate(isNewer)
-                if interactive {
-                    if isNewer {
-                        promptInstall(release)
-                    } else {
-                        showInfo(L.format("update.latest", UpdateService.currentVersion))
-                    }
-                }
-            } catch {
-                log.error("update check failed: \(error.localizedDescription, privacy: .public)")
-                if interactive {
-                    showError(L.format("update.check_failed", error.localizedDescription))
-                }
-            }
-        }
-    }
-
-    private func promptInstall(_ release: ReleaseInfo) {
-        NSApp.activate(ignoringOtherApps: true)
-        let alert = NSAlert()
-        alert.messageText = L.format("update.available.title", release.tagName)
-        alert.informativeText = L.format("update.available.body", UpdateService.currentVersion)
-        alert.addButton(withTitle: L.string("update.button.update"))
-        alert.addButton(withTitle: L.string("update.button.open_release"))
-        alert.addButton(withTitle: L.string("button.cancel"))
-        switch alert.runModal() {
-        case .alertFirstButtonReturn:
-            performUpdate(release)
-        case .alertSecondButtonReturn:
-            if let url = URL(string: release.htmlUrl) { NSWorkspace.shared.open(url) }
-        default:
-            break
-        }
-    }
-
-    private func performUpdate(_ release: ReleaseInfo) {
-        Task { @MainActor in
-            do {
-                try await selfUpdater.performUpdate(to: release)
-                // 成功時はアプリが終了するためここには戻らない。
-            } catch {
-                log.error("self-update failed: \(error.localizedDescription, privacy: .public)")
-                showError(L.format("update.failed", error.localizedDescription))
-            }
-        }
-    }
-
-    private func showInfo(_ text: String) {
-        NSApp.activate(ignoringOtherApps: true)
-        let alert = NSAlert()
-        alert.messageText = "Keykun"
-        alert.informativeText = text
-        alert.runModal()
-    }
-
-    private func showError(_ text: String) {
-        NSApp.activate(ignoringOtherApps: true)
-        let alert = NSAlert()
-        alert.alertStyle = .warning
-        alert.messageText = L.string("alert.error.title")
-        alert.informativeText = text
-        alert.runModal()
-    }
 }

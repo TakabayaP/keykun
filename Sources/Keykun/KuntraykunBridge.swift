@@ -15,12 +15,11 @@ private let log = Logger(subsystem: "com.mtkg.keykun", category: "kuntraykun")
 @MainActor
 final class KuntraykunBridge {
     // MARK: プロトコル定数（kuntraykun 側と一致させる）
-    /// kuntraykun 本体（本番／ローカル検証ビルドの両方を起動中判定の対象にする）。
+    /// kuntraykun 本体（通常版と開発版の両方を起動中判定の対象にする）。
     private static let kuntraykunBundleIDs = ["com.mtkg.kuntraykun", "com.mtkg.kuntraykun.local"]
     private static let syncName = Notification.Name("com.mtkg.kuntraykun.sync")
     private static let showMenuName = Notification.Name("com.mtkg.kuntraykun.showMenu")
     private static let appLaunchedName = Notification.Name("com.mtkg.kun.appLaunched")
-    private static let updateStateName = Notification.Name("com.mtkg.kun.updateState")
     private static let managedDefaultsKey = "KuntraykunManaged"
 
     /// 自分のアイコンを隠す/戻すクロージャ（StatusBarController へ委譲）。
@@ -28,14 +27,12 @@ final class KuntraykunBridge {
     /// 自分のメニューを指定座標に出すクロージャ（StatusBarController へ委譲）。
     private let popUpMenu: (NSPoint) -> Void
 
-    /// `.local` を除いた自分の基底 bundle ID。
+    /// 自分の bundle ID。
     private let myBundleID: String
     /// kuntraykun の管理対象に選ばれているか（UserDefaults に永続化）。
     private var isManaged: Bool
     /// 遅延表示（復活）の世代。再評価のたびに進めて保留中の復活をキャンセルする。
     private var showGeneration = 0
-    /// 直近に kuntraykun へ報告したアップデート有無。sync 受信時に再送して整合させる。
-    private var lastReportedUpdate = false
     /// `NSWorkspace.runningApplications` の KVO 監視トークン。
     private var runningAppsObservation: NSKeyValueObservation?
 
@@ -43,7 +40,7 @@ final class KuntraykunBridge {
         self.setHidden = setHidden
         self.popUpMenu = popUpMenu
         let raw = Bundle.main.bundleIdentifier ?? ""
-        self.myBundleID = raw.hasSuffix(".local") ? String(raw.dropLast(".local".count)) : raw
+        self.myBundleID = raw
         self.isManaged = UserDefaults.standard.bool(forKey: Self.managedDefaultsKey)
     }
 
@@ -87,18 +84,6 @@ final class KuntraykunBridge {
             log.info("managed=\(nowManaged, privacy: .public)")
         }
         refreshVisibility()
-        // 起動直後の kuntraykun にも現在のアップデート状態を伝える。
-        reportUpdate(lastReportedUpdate)
-    }
-
-    /// 「アップデートあり/なし」を kuntraykun に報告する（更新検知時・解消時に呼ぶ）。
-    func reportUpdate(_ hasUpdate: Bool) {
-        lastReportedUpdate = hasUpdate
-        DistributedNotificationCenter.default().postNotificationName(
-            Self.updateStateName, object: nil,
-            userInfo: ["bundleID": myBundleID, "hasUpdate": hasUpdate ? "1" : "0", "protocol": "1"],
-            deliverImmediately: true
-        )
     }
 
     /// メニュー表示依頼。自分宛なら指定スクリーン座標に自分のメニューを出す。

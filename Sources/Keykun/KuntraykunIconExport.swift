@@ -9,10 +9,9 @@ enum KuntraykunIconExport {
     /// `~/Library/Application Support/Kuntraykun/MenuBarIcons`（kuntraykun 側と一致させる）。
     private static let sharedDirRelativePath = "Kuntraykun/MenuBarIcons"
 
-    /// `.local` を除いた基底 bundle ID。
+    /// アイコンファイル名に使う bundle ID。
     private static var baseBundleID: String {
-        let raw = Bundle.main.bundleIdentifier ?? ""
-        return raw.hasSuffix(".local") ? String(raw.dropLast(".local".count)) : raw
+        Bundle.main.bundleIdentifier ?? "com.mtkg.keykun"
     }
 
     private static var dir: URL? {

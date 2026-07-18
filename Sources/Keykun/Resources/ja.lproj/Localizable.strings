@@ -2,43 +2,15 @@
 "menu.settings" = "設定…";
 "menu.check_permission" = "アクセシビリティ権限を確認";
 "menu.version" = "Keykun %@";
-"menu.check_update" = "アップデートを確認…";
-"menu.install_update" = "アップデート %@ をインストール…";
 "menu.quit" = "Keykun を終了";
 
-/* Menu bar */
-"menu_bar.local" = "ローカル";
-
-/* Update flow */
-"update.latest" = "最新版です（v%@）。";
-"update.check_failed" = "アップデートの確認に失敗しました。\n%@";
-"update.available.title" = "新しいバージョン %@ があります";
-"update.available.body" = "現在: v%@\n更新するとアプリを再起動します。";
-"update.button.update" = "更新";
-"update.button.open_release" = "リリースページを開く";
-"update.failed" = "更新に失敗しました。\n%@";
 "alert.error.title" = "エラー";
-
-/* Update service errors */
-"error.fetch_release_http" = "リリース情報の取得に失敗しました（HTTP %d）。";
-"error.parse_release" = "リリース情報の解析に失敗しました。";
-"error.no_zip_asset" = "リリースに zip アセットが見つかりませんでした。";
-"error.download_http" = "ダウンロードに失敗しました（HTTP %d）。";
-
-/* Self-updater errors */
-"error.not_writable" = "アプリの場所に書き込めません: %@。手動での更新が必要です。";
-"error.no_zip" = "リリースに zip が見つかりませんでした。";
-"error.command_failed" = "更新コマンドが失敗しました: %@";
-"error.no_app_in_archive" = "ダウンロードしたアーカイブに .app が見つかりませんでした。";
-"error.bundle_id_mismatch" = "ダウンロードした .app の識別子が一致しませんでした。";
 
 /* Settings window */
 "settings.window.title" = "Keykun 設定";
 
 /* Tabs */
-"tab.safe_quit" = "安全な Quit";
 "tab.input_switch" = "入力切り替え";
-"tab.modifier_launch" = "アプリ起動";
 "tab.slack_escape" = "Slack Esc";
 "tab.general" = "一般";
 
@@ -46,12 +18,6 @@
 "settings.launch_at_login" = "ログイン時に自動起動";
 "settings.version" = "バージョン %@";
 "login_item.requires_approval" = "「ログイン項目」がシステム設定で無効になっています。システム設定 ＞ 一般 ＞ ログイン項目 で Keykun を許可してください。";
-
-/* Safe Quit tab */
-"safe_quit.enabled" = "⌘Q を2回押さないと終了しないようにする";
-"safe_quit.interval" = "2回目を受け付ける猶予時間";
-"safe_quit.interval.seconds" = "%.1f 秒";
-"safe_quit.description" = "⌘Q を1回押すと案内を表示し、猶予時間内にもう一度 ⌘Q を押すと終了します。";
 
 /* Input Switch tab */
 "input_switch.enabled" = "修飾キーの単押しで入力モードを切り替える";
@@ -64,19 +30,11 @@
 "input_switch.action.kana" = "かなキー（日本語）";
 "input_switch.description" = "選択した修飾キーを単独で（他キーと一緒に押さず）押して離すと、英数/かなキーを送って IME のモードを切り替えます（現在の入力ソースに関係なく確実に切り替わります）。組み合わせ時は通常どおり修飾キーとして機能します。";
 
-/* Launch App tab (modifier double-tap) */
-"modifier_launch.enabled" = "修飾キーの二度押しでアプリを起動する";
-"modifier_launch.modifier.command" = "⌘ Command";
-"modifier_launch.modifier.option" = "⌥ Option";
-"modifier_launch.modifier.control" = "⌃ Control";
-"modifier_launch.modifier.shift" = "⇧ Shift";
-"modifier_launch.side.left" = "左";
-"modifier_launch.side.right" = "右";
-"modifier_launch.side.both" = "両方";
-"modifier_launch.add" = "追加";
-"modifier_launch.choose_app" = "アプリを選択…";
-"modifier_launch.conflict" = "⌘ は「入力切り替え」で使用中です。どちらか一方のみ有効にできます。";
-"modifier_launch.description" = "修飾キー種別と左右を選び、単独で（他キーと一緒に押さず）2回押して離すと、割り当てたアプリを起動します。「両方」を選ぶと左右どちらかの二度押し（左を2回 または 右を2回）で起動します（左右は別々に判定するため、左→右のような混在の2回では起動しません）。そのアプリが既に最前面なら隠します（トグル）。＋で割り当てを追加、－で削除できます。入力切り替えとは別のキーにすると競合しません。";
+/* Modifier key names */
+"modifier.command" = "⌘ Command";
+"modifier.option" = "⌥ Option";
+"modifier.control" = "⌃ Control";
+"modifier.shift" = "⇧ Shift";
 
 /* Slack Esc tab */
 "slack_escape.enabled" = "Slack の Esc を SKK キャンセル用に置き換える";
@@ -85,12 +43,9 @@
 /* Common units */
 "common.seconds" = "%.1f 秒";
 
-/* HUD */
-"hud.press_again" = "もう一度 ⌘Q で終了";
-
 /* Permission alert */
 "permission.alert.title" = "アクセシビリティの許可が必要です";
-"permission.alert.body" = "⌘Q の二度押し判定にはキー入力の監視が必要です。\n「システム設定 ＞ プライバシーとセキュリティ ＞ アクセシビリティ」で Keykun を許可してください。許可後は自動的に有効になります。";
+"permission.alert.body" = "有効な機能のためにキー入力の監視が必要です。\n「システム設定 ＞ プライバシーとセキュリティ ＞ アクセシビリティ」で Keykun を許可してください。許可後は自動的に有効になります。";
 "permission.button.open" = "設定を開く";
 "permission.button.later" = "あとで";
 
