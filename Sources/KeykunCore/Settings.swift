@@ -8,13 +8,17 @@ public struct Settings: Codable, Equatable {
     public var inputSwitch: InputSwitchSettings
     /// 「Slack の Esc を SKK キャンセルへ変換」機能の設定。
     public var slackEscape: SlackEscapeSettings
+    /// 「Ctrl-C/V を macOS のコピー/ペーストへ変換」機能の設定。
+    public var copyPaste: CopyPasteSettings
 
     public init(
         inputSwitch: InputSwitchSettings = InputSwitchSettings(),
-        slackEscape: SlackEscapeSettings = SlackEscapeSettings()
+        slackEscape: SlackEscapeSettings = SlackEscapeSettings(),
+        copyPaste: CopyPasteSettings = CopyPasteSettings()
     ) {
         self.inputSwitch = inputSwitch
         self.slackEscape = slackEscape
+        self.copyPaste = copyPaste
     }
 
     /// 既定設定。
@@ -23,6 +27,7 @@ public struct Settings: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case inputSwitch
         case slackEscape
+        case copyPaste
     }
 
     public init(from decoder: Decoder) throws {
@@ -31,6 +36,8 @@ public struct Settings: Codable, Equatable {
             ?? InputSwitchSettings()
         self.slackEscape = try container.decodeIfPresent(SlackEscapeSettings.self, forKey: .slackEscape)
             ?? SlackEscapeSettings()
+        self.copyPaste = try container.decodeIfPresent(CopyPasteSettings.self, forKey: .copyPaste)
+            ?? CopyPasteSettings()
     }
 }
 
@@ -162,6 +169,27 @@ public struct SlackEscapeSettings: Codable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let defaults = SlackEscapeSettings()
+        self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
+            ?? defaults.isEnabled
+    }
+}
+
+/// Ctrl ベースのコピー/ペーストを macOS の Command ショートカットへ変換する設定。
+public struct CopyPasteSettings: Codable, Equatable {
+    /// 機能の有効/無効。
+    public var isEnabled: Bool
+
+    public init(isEnabled: Bool = false) {
+        self.isEnabled = isEnabled
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case isEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = CopyPasteSettings()
         self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
             ?? defaults.isEnabled
     }

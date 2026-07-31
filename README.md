@@ -4,6 +4,7 @@ macOS 用のキー操作カスタマイズツール（メニューバー常駐�
 
 - 左右の修飾キー単押しによる入力モード切り替え（英数 / かな）
 - Slack が最前面のときの Esc → Ctrl-G 置き換え（SKK 向け）
+- Linux 風の Ctrl-C/V によるコピー/ペースト（ターミナルでは Ctrl-Shift-C/V）
 - ログイン時の自動起動
 
 キー入力は `CGEventTap` で監視します。アクセシビリティ権限が必要です。
@@ -29,6 +30,12 @@ macOS 用のキー操作カスタマイズツール（メニューバー常駐�
 「Slack Esc」タブで有効にすると、Slack が最前面のときだけ修飾キーなしの Esc を握りつぶし、
 代わりに Ctrl-G を送ります。SKK のキャンセル操作を Slack の Esc ショートカットと分離するための設定です。
 
+### コピー / ペースト
+
+有効にすると、通常アプリでは Ctrl-C / Ctrl-V を macOS の Command-C / Command-V に変換します。
+ターミナルでは Ctrl-C の割り込みと Vim の Ctrl-V をそのまま使えるよう変換せず、Linux と同じ
+Ctrl-Shift-C / Ctrl-Shift-V をコピー / ペーストとして Command-C / Command-V に変換します。
+
 ## 多言語対応
 
 GUI は日本語・英語に対応します。文字列は `Sources/Keykun/Resources/{en,ja}.lproj/Localizable.strings` に定義し、
@@ -49,6 +56,7 @@ Sources/
     KeyEventTap.swift           CGEventTap の共有
     InputSwitchHandler.swift    入力切り替え
     SlackEscapeHandler.swift    Slack 前面時の Esc→Ctrl-G
+    CopyPasteHandler.swift       Ctrl ベースのコピー/ペースト変換
     InputModeKey.swift          英数/かなキー送出
     AccessibilityPermission.swift
     StatusBarController.swift   メニューバー UI

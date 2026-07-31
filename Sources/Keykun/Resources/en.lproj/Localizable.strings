@@ -12,6 +12,7 @@
 /* Tabs */
 "tab.input_switch" = "Input Switch";
 "tab.slack_escape" = "Slack Esc";
+"tab.copy_paste" = "Copy / Paste";
 "tab.general" = "General";
 
 /* General tab */
@@ -39,6 +40,10 @@
 /* Slack Esc tab */
 "slack_escape.enabled" = "Replace Esc in Slack for SKK cancellation";
 "slack_escape.description" = "When Slack is frontmost, plain Esc is consumed before Slack sees it and Ctrl-G is sent instead. This is intended for SKK cancellation.";
+
+/* Copy / Paste tab */
+"copy_paste.enabled" = "Use Linux-style Ctrl shortcuts for copy and paste";
+"copy_paste.description" = "In regular apps, Ctrl-C and Ctrl-V are translated to Command-C and Command-V. In terminal apps, plain Ctrl-C and Ctrl-V remain available for interrupts and Vim; use Ctrl-Shift-C and Ctrl-Shift-V for copy and paste instead.";
 
 /* Common units */
 "common.seconds" = "%.1f sec";
