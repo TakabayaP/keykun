@@ -20,6 +20,8 @@
 "settings.launch_at_login" = "ログイン時に自動起動";
 "settings.version" = "バージョン %@";
 "login_item.requires_approval" = "「ログイン項目」がシステム設定で無効になっています。システム設定 ＞ 一般 ＞ ログイン項目 で Keykun を許可してください。";
+"command_shortcuts.disable_hide" = "Command-H（アプリを隠す）を無効にする";
+"command_shortcuts.disable_hide_description" = "通常アプリの Command-H を消費し、macOS の「アプリを隠す」を無効にします。Command / Control 交換を維持するため、ターミナルアプリは対象外です。";
 
 /* Input Switch tab */
 "input_switch.enabled" = "修飾キーの単押しで入力モードを切り替える";

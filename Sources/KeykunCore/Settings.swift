@@ -12,17 +12,21 @@ public struct Settings: Codable, Equatable {
     public var copyPaste: CopyPasteSettings
     /// 「ターミナル内だけ Command / Control を交換」機能の設定。
     public var terminalModifierSwap: TerminalModifierSwapSettings
+    /// macOS 標準の Command ショートカットを調整する設定。
+    public var commandShortcuts: CommandShortcutSettings
 
     public init(
         inputSwitch: InputSwitchSettings = InputSwitchSettings(),
         slackEscape: SlackEscapeSettings = SlackEscapeSettings(),
         copyPaste: CopyPasteSettings = CopyPasteSettings(),
-        terminalModifierSwap: TerminalModifierSwapSettings = TerminalModifierSwapSettings()
+        terminalModifierSwap: TerminalModifierSwapSettings = TerminalModifierSwapSettings(),
+        commandShortcuts: CommandShortcutSettings = CommandShortcutSettings()
     ) {
         self.inputSwitch = inputSwitch
         self.slackEscape = slackEscape
         self.copyPaste = copyPaste
         self.terminalModifierSwap = terminalModifierSwap
+        self.commandShortcuts = commandShortcuts
     }
 
     /// 既定設定。
@@ -33,6 +37,7 @@ public struct Settings: Codable, Equatable {
         case slackEscape
         case copyPaste
         case terminalModifierSwap
+        case commandShortcuts
     }
 
     public init(from decoder: Decoder) throws {
@@ -47,6 +52,10 @@ public struct Settings: Codable, Equatable {
             TerminalModifierSwapSettings.self,
             forKey: .terminalModifierSwap
         ) ?? TerminalModifierSwapSettings()
+        self.commandShortcuts = try container.decodeIfPresent(
+            CommandShortcutSettings.self,
+            forKey: .commandShortcuts
+        ) ?? CommandShortcutSettings()
     }
 }
 
@@ -222,5 +231,26 @@ public struct TerminalModifierSwapSettings: Codable, Equatable {
         let defaults = TerminalModifierSwapSettings()
         self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
             ?? defaults.isEnabled
+    }
+}
+
+/// macOS 標準の Command ショートカットを調整する設定。
+public struct CommandShortcutSettings: Codable, Equatable {
+    /// Command-H（最前面アプリを隠す）を無効化する。
+    public var disableHide: Bool
+
+    public init(disableHide: Bool = false) {
+        self.disableHide = disableHide
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case disableHide
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = CommandShortcutSettings()
+        self.disableHide = try container.decodeIfPresent(Bool.self, forKey: .disableHide)
+            ?? defaults.disableHide
     }
 }

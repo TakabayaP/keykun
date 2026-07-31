@@ -20,6 +20,8 @@
 "settings.launch_at_login" = "Launch at Login";
 "settings.version" = "Version %@";
 "login_item.requires_approval" = "“Login Items” is disabled in System Settings. Allow Keykun under System Settings ＞ General ＞ Login Items.";
+"command_shortcuts.disable_hide" = "Disable Command-H (Hide Application)";
+"command_shortcuts.disable_hide_description" = "Consume Command-H in regular apps so the macOS Hide Application shortcut does nothing. Terminal apps are excluded so their Command / Control swap keeps working.";
 
 /* Input Switch tab */
 "input_switch.enabled" = "Switch input mode with a single modifier tap";

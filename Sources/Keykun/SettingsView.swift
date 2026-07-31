@@ -44,7 +44,11 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView {
-                GeneralSettingsTab(loginItem: loginItem, errorMessage: $loginItemError)
+                GeneralSettingsTab(
+                    settings: $viewModel.settings.commandShortcuts,
+                    loginItem: loginItem,
+                    errorMessage: $loginItemError
+                )
                     .tabItem { Text(L.string("tab.general")) }
 
                 InputSwitchSettingsTab(settings: $viewModel.settings.inputSwitch)
@@ -171,13 +175,25 @@ struct SlackEscapeSettingsTab: View {
     }
 }
 
-/// 「一般」タブ。ログイン時の自動起動とバージョン表示。
+/// 「一般」タブ。Command ショートカット、ログイン時の自動起動、バージョン表示。
 struct GeneralSettingsTab: View {
+    @SwiftUI.Binding var settings: CommandShortcutSettings
     @ObservedObject var loginItem: LoginItemController
     @SwiftUI.Binding var errorMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
+            Toggle(
+                L.string("command_shortcuts.disable_hide"),
+                isOn: $settings.disableHide
+            )
+
+            Text(L.string("command_shortcuts.disable_hide_description"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             // ログイン項目はシステム側が source of truth。トグル操作で即時反映する。
             Toggle(L.string("settings.launch_at_login"), isOn: Binding(
                 get: { loginItem.isEnabled },

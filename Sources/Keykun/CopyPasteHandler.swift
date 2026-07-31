@@ -30,7 +30,7 @@ final class CopyPasteHandler: KeyEventHandler {
 
         guard settings.isEnabled, type == .keyDown else { return false }
 
-        let modifiers = copyPasteModifiers(from: event.flags)
+        let modifiers = shortcutModifiers(from: event.flags)
         guard let shortcut = CopyPasteShortcutMatcher.match(
             keyCode: keyCode,
             modifiers: modifiers,
@@ -48,15 +48,6 @@ final class CopyPasteHandler: KeyEventHandler {
 
     func reset() {
         consumedKeyUps.removeAll()
-    }
-
-    private func copyPasteModifiers(from flags: CGEventFlags) -> CopyPasteModifiers {
-        var modifiers: CopyPasteModifiers = []
-        if flags.contains(.maskControl) { modifiers.insert(.control) }
-        if flags.contains(.maskShift) { modifiers.insert(.shift) }
-        if flags.contains(.maskAlternate) { modifiers.insert(.option) }
-        if flags.contains(.maskCommand) { modifiers.insert(.command) }
-        return modifiers
     }
 
     private nonisolated static func postCommandShortcut(_ shortcut: CopyPasteShortcut) {
