@@ -10,15 +10,19 @@ public struct Settings: Codable, Equatable {
     public var slackEscape: SlackEscapeSettings
     /// 「Ctrl-C/V を macOS のコピー/ペーストへ変換」機能の設定。
     public var copyPaste: CopyPasteSettings
+    /// 「ターミナル内だけ Command / Control を交換」機能の設定。
+    public var terminalModifierSwap: TerminalModifierSwapSettings
 
     public init(
         inputSwitch: InputSwitchSettings = InputSwitchSettings(),
         slackEscape: SlackEscapeSettings = SlackEscapeSettings(),
-        copyPaste: CopyPasteSettings = CopyPasteSettings()
+        copyPaste: CopyPasteSettings = CopyPasteSettings(),
+        terminalModifierSwap: TerminalModifierSwapSettings = TerminalModifierSwapSettings()
     ) {
         self.inputSwitch = inputSwitch
         self.slackEscape = slackEscape
         self.copyPaste = copyPaste
+        self.terminalModifierSwap = terminalModifierSwap
     }
 
     /// 既定設定。
@@ -28,6 +32,7 @@ public struct Settings: Codable, Equatable {
         case inputSwitch
         case slackEscape
         case copyPaste
+        case terminalModifierSwap
     }
 
     public init(from decoder: Decoder) throws {
@@ -38,6 +43,10 @@ public struct Settings: Codable, Equatable {
             ?? SlackEscapeSettings()
         self.copyPaste = try container.decodeIfPresent(CopyPasteSettings.self, forKey: .copyPaste)
             ?? CopyPasteSettings()
+        self.terminalModifierSwap = try container.decodeIfPresent(
+            TerminalModifierSwapSettings.self,
+            forKey: .terminalModifierSwap
+        ) ?? TerminalModifierSwapSettings()
     }
 }
 
@@ -190,6 +199,27 @@ public struct CopyPasteSettings: Codable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let defaults = CopyPasteSettings()
+        self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
+            ?? defaults.isEnabled
+    }
+}
+
+/// ターミナルアプリが最前面のときだけ Command と Control を交換する設定。
+public struct TerminalModifierSwapSettings: Codable, Equatable {
+    /// 機能の有効/無効。
+    public var isEnabled: Bool
+
+    public init(isEnabled: Bool = false) {
+        self.isEnabled = isEnabled
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case isEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = TerminalModifierSwapSettings()
         self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled)
             ?? defaults.isEnabled
     }

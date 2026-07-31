@@ -55,6 +55,11 @@ struct SettingsView: View {
 
                 CopyPasteSettingsTab(settings: $viewModel.settings.copyPaste)
                     .tabItem { Text(L.string("tab.copy_paste")) }
+
+                TerminalModifierSwapSettingsTab(
+                    settings: $viewModel.settings.terminalModifierSwap
+                )
+                .tabItem { Text(L.string("tab.terminal")) }
                 // 将来のキー機能タブはここに追加する。
             }
             .padding()
@@ -91,6 +96,30 @@ struct SettingsView: View {
         } message: {
             Text(loginItemError ?? "")
         }
+    }
+}
+
+/// 「Terminal」タブ。ターミナル内だけ Command と Control を交換する。
+struct TerminalModifierSwapSettingsTab: View {
+    @SwiftUI.Binding var settings: TerminalModifierSwapSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Toggle(isOn: $settings.isEnabled) {
+                Text(L.string("terminal_modifier_swap.enabled"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Text(L.string("terminal_modifier_swap.description"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 

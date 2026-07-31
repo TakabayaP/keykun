@@ -19,7 +19,8 @@
 ## プロジェクト概要
 
 Keykun は macOS 用のキー操作カスタマイズツール（メニューバー常駐アプリ）。
-現在は入力モード切り替え、Slack の Esc 置き換え、Linux 風の Ctrl コピー/ペーストを提供する。
+現在は入力モード切り替え、Slack の Esc 置き換え、Linux 風の Ctrl コピー/ペースト、
+ターミナル限定の Command / Control 交換を提供する。
 外部依存なし（AppKit / ApplicationServices / SwiftUI のみ）の Swift Package Manager プロジェクト。
 今後さまざまなキー設定機能を追加していく前提で、設定 UI はタブで拡張する構成にしている。
 
@@ -44,7 +45,8 @@ AD_HOC=1 bash Scripts/bundle.sh debug  # 証明書が無い場合のアドホッ
 - **`KeykunCore`（ライブラリ / テスト対象）**: AppKit/CGEventTap に依存しないロジックとモデル。
   - `ModifierTapDetector` — 左右 Command の「単押し（長押しでない・他キー併用なし）」検知の純粋ロジック。
     `commandDown`/`commandUp`/`contaminate` を時刻注入で受け、単押し成立時に `ModifierSide` を返す。
-  - `Settings` / `InputSwitchSettings` / `SlackEscapeSettings` / `CopyPasteSettings` — 設定モデル。機能ごとにサブ構造体を持ち、
+  - `Settings` / `InputSwitchSettings` / `SlackEscapeSettings` / `CopyPasteSettings` /
+    `TerminalModifierSwapSettings` — 設定モデル。機能ごとにサブ構造体を持ち、
     機能追加で拡張する。Codable は欠損キーを既定値で補完する（前方/後方互換）。
   - `CopyPasteShortcutMatcher` — 通常アプリとターミナルで変換対象にする Ctrl ショートカットを判定する純粋ロジック。
   - `SettingsStore` — 設定の JSON 永続化（`~/Library/Application Support/Keykun/settings.json`）。
@@ -59,6 +61,8 @@ AD_HOC=1 bash Scripts/bundle.sh debug  # 証明書が無い場合のアドホッ
   - `InputModeKey` — 英数(102)/かな(104)キーの CGEvent を `.cghidEventTap`（HID 相当）に post して IME のモードを切り替える。
   - `CopyPasteHandler`（`KeyEventHandler`）— 通常アプリでは Ctrl-C/V、ターミナルでは
     Ctrl-Shift-C/V を Command-C/V に変換する。ターミナルの Ctrl-C/V は割り込みと Vim のため素通しする。
+  - `TerminalModifierSwapHandler`（`KeyEventHandler`）— ターミナルが最前面のときだけ
+    Command / Control の汎用・左右別フラグと修飾キーコードを交換する。
   - `AccessibilityPermission` — アクセシビリティ権限の確認・要求・設定画面オープン
   - `LoginItemController` — ログイン時自動起動（`SMAppService.mainApp`）。状態はシステム側が source of truth
     で、`Settings`/JSON には保存しない。設定ダイアログの「一般」タブのトグルで即時反映する。
@@ -69,7 +73,9 @@ AD_HOC=1 bash Scripts/bundle.sh debug  # 証明書が無い場合のアドホッ
 データの流れ:
 キー入力 → `KeyEventTap`（CGEventTap）が各ハンドラへ配信 →
 `InputSwitchHandler` は左右⌘の単押しを `ModifierTapDetector` で判定し成立時に英数/かなキーを送出し、
-`SlackEscapeHandler` は Slack 前面時の Esc、`CopyPasteHandler` はアプリ種別に応じたコピー/ペーストを処理する。
+`SlackEscapeHandler` は Slack 前面時の Esc、`InputSwitchHandler` は交換前の修飾キー単押しを処理する。
+続いて `TerminalModifierSwapHandler` がターミナル向けに修飾キーを交換し、`CopyPasteHandler` は交換後の
+Ctrl-Shift-C/V をコピー・ペーストとして処理する。
 
 ## 設計上の重要な前提（変更時に注意）
 
