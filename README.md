@@ -6,6 +6,7 @@ macOS 用のキー操作カスタマイズツール（メニューバー常駐�
 - Slack が最前面のときの Esc → Ctrl-G 置き換え（SKK 向け）
 - Linux 風の Ctrl-C/V によるコピー/ペースト（ターミナルでは Ctrl-Shift-C/V）
 - ターミナルが最前面のときだけ Command / Control を交換
+- macOS 標準の Command-H（アプリを隠す）を無効化
 - ログイン時の自動起動
 
 キー入力は `CGEventTap` で監視します。アクセシビリティ権限が必要です。
@@ -43,6 +44,11 @@ Ctrl-Shift-C / Ctrl-Shift-V をコピー / ペーストとして Command-C / Com
 通常アプリの Command ショートカットには影響しません。macOS 側で Caps Lock を Command にしている場合は、
 ターミナル内で Caps Lock 位置を Linux と同じ Control として使えます。
 
+### Command-H
+
+「一般」タブで有効にすると、通常アプリの Command-H を握りつぶして macOS の「アプリを隠す」を
+無効にします。ターミナルは Command / Control 交換を維持するため対象外です。
+
 ## 多言語対応
 
 GUI は日本語・英語に対応します。文字列は `Sources/Keykun/Resources/{en,ja}.lproj/Localizable.strings` に定義し、
@@ -57,6 +63,7 @@ Sources/
   KeykunCore/               純粋ロジックと設定モデル
     ModifierTapDetector.swift 左右修飾キーの単押し検知
     TerminalModifierSwap.swift Command / Control 交換ロジック
+    CommandHideShortcutMatcher.swift Command-H 無効化の判定
     Settings.swift             設定モデル
     SettingsStore.swift        JSON 永続化
   Keykun/                   アプリ本体
@@ -66,6 +73,7 @@ Sources/
     SlackEscapeHandler.swift    Slack 前面時の Esc→Ctrl-G
     CopyPasteHandler.swift       Ctrl ベースのコピー/ペースト変換
     TerminalModifierSwapHandler.swift ターミナル限定の修飾キー交換
+    CommandHideHandler.swift      Command-H の無効化
     InputModeKey.swift          英数/かなキー送出
     AccessibilityPermission.swift
     StatusBarController.swift   メニューバー UI

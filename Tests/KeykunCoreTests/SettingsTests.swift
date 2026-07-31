@@ -13,6 +13,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertFalse(s.slackEscape.isEnabled)
         XCTAssertFalse(s.copyPaste.isEnabled)
         XCTAssertFalse(s.terminalModifierSwap.isEnabled)
+        XCTAssertFalse(s.commandShortcuts.disableHide)
     }
 
     func testInputSwitchCodableRoundTrip() throws {
@@ -101,6 +102,28 @@ final class SettingsTests: XCTestCase {
             decoded.terminalModifierSwap,
             TerminalModifierSwapSettings(isEnabled: true)
         )
+    }
+
+    func testCommandShortcutsCodableRoundTrip() throws {
+        var s = Settings.default
+        s.commandShortcuts.disableHide = true
+
+        let data = try JSONEncoder().encode(s)
+        let decoded = try JSONDecoder().decode(Settings.self, from: data)
+
+        XCTAssertEqual(
+            decoded.commandShortcuts,
+            CommandShortcutSettings(disableHide: true)
+        )
+    }
+
+    func testDecodingSettingsWithoutCommandShortcutsFillsDefaults() throws {
+        let json = """
+        { "terminalModifierSwap": { "isEnabled": true } }
+        """
+        let decoded = try JSONDecoder().decode(Settings.self, from: Data(json.utf8))
+        XCTAssertTrue(decoded.terminalModifierSwap.isEnabled)
+        XCTAssertFalse(decoded.commandShortcuts.disableHide)
     }
 
     func testDecodingEmptyObjectFallsBackToDefaults() throws {
