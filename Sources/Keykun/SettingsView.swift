@@ -52,6 +52,9 @@ struct SettingsView: View {
 
                 SlackEscapeSettingsTab(settings: $viewModel.settings.slackEscape)
                     .tabItem { Text(L.string("tab.slack_escape")) }
+
+                CopyPasteSettingsTab(settings: $viewModel.settings.copyPaste)
+                    .tabItem { Text(L.string("tab.copy_paste")) }
                 // 将来のキー機能タブはここに追加する。
             }
             .padding()
@@ -88,6 +91,30 @@ struct SettingsView: View {
         } message: {
             Text(loginItemError ?? "")
         }
+    }
+}
+
+/// 「Copy / Paste」タブ。通常アプリとターミナルで Linux に近い Ctrl ショートカットを提供する。
+struct CopyPasteSettingsTab: View {
+    @SwiftUI.Binding var settings: CopyPasteSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Toggle(isOn: $settings.isEnabled) {
+                Text(L.string("copy_paste.enabled"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Text(L.string("copy_paste.description"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 

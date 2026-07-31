@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let eventTap = KeyEventTap()
     private let inputSwitch = InputSwitchHandler()
     private let slackEscape = SlackEscapeHandler()
+    private let copyPaste = CopyPasteHandler()
 
     private var statusBar: StatusBarController?
     private var settingsWindowController: SettingsWindowController?
@@ -26,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         applySettings(settings)
 
         eventTap.add(slackEscape)
+        eventTap.add(copyPaste)
         eventTap.add(inputSwitch)
 
         statusBar = StatusBarController(
@@ -48,6 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 設定を各ハンドラに反映する。
     private func applySettings(_ settings: Settings) {
         slackEscape.update(settings.slackEscape)
+        copyPaste.update(settings.copyPaste)
         inputSwitch.update(settings.inputSwitch)
     }
 

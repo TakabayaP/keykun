@@ -12,6 +12,7 @@
 /* Tabs */
 "tab.input_switch" = "入力切り替え";
 "tab.slack_escape" = "Slack Esc";
+"tab.copy_paste" = "コピー / ペースト";
 "tab.general" = "一般";
 
 /* General tab */
@@ -39,6 +40,10 @@
 /* Slack Esc tab */
 "slack_escape.enabled" = "Slack の Esc を SKK キャンセル用に置き換える";
 "slack_escape.description" = "Slack が最前面のとき、修飾キーなしの Esc を Slack へ渡さず、代わりに Ctrl-G を送ります。SKK のキャンセル操作に使うための設定です。";
+
+/* Copy / Paste tab */
+"copy_paste.enabled" = "Linux と同じ Ctrl 操作でコピー / ペーストする";
+"copy_paste.description" = "通常のアプリでは Ctrl-C / Ctrl-V を Command-C / Command-V に変換します。ターミナルでは割り込みや Vim の操作を守るため Ctrl-C / Ctrl-V はそのままにし、Ctrl-Shift-C / Ctrl-Shift-V でコピー / ペーストします。";
 
 /* Common units */
 "common.seconds" = "%.1f 秒";
