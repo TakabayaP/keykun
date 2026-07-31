@@ -14,18 +14,6 @@ final class CopyPasteHandler: KeyEventHandler {
     private var settings = CopyPasteSettings()
     private var consumedKeyUps: Set<CGKeyCode> = []
 
-    private let terminalBundleIdentifiers: Set<String> = [
-        "com.apple.Terminal",
-        "com.github.wez.wezterm",
-        "com.googlecode.iterm2",
-        "com.mitchellh.ghostty",
-        "com.mitchellh.ghostty-debug",
-        "dev.warp.Warp",
-        "dev.warp.Warp-Stable",
-        "net.kovidgoyal.kitty",
-        "org.alacritty",
-    ]
-
     func update(_ settings: CopyPasteSettings) {
         self.settings = settings
         if !settings.isEnabled {
@@ -46,7 +34,7 @@ final class CopyPasteHandler: KeyEventHandler {
         guard let shortcut = CopyPasteShortcutMatcher.match(
             keyCode: keyCode,
             modifiers: modifiers,
-            isTerminal: isTerminalFrontmost
+            isTerminal: TerminalApplication.isFrontmost
         ) else {
             return false
         }
@@ -60,13 +48,6 @@ final class CopyPasteHandler: KeyEventHandler {
 
     func reset() {
         consumedKeyUps.removeAll()
-    }
-
-    private var isTerminalFrontmost: Bool {
-        guard let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier else {
-            return false
-        }
-        return terminalBundleIdentifiers.contains(bundleIdentifier)
     }
 
     private func copyPasteModifiers(from flags: CGEventFlags) -> CopyPasteModifiers {
@@ -97,6 +78,8 @@ final class CopyPasteHandler: KeyEventHandler {
 
         down.flags = .maskCommand
         up.flags = .maskCommand
+        SyntheticEvent.markBypassingTerminalModifierSwap(down)
+        SyntheticEvent.markBypassingTerminalModifierSwap(up)
         down.post(tap: .cghidEventTap)
         up.post(tap: .cghidEventTap)
     }

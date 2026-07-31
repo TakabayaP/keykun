@@ -13,6 +13,7 @@
 "tab.input_switch" = "Input Switch";
 "tab.slack_escape" = "Slack Esc";
 "tab.copy_paste" = "Copy / Paste";
+"tab.terminal" = "Terminal";
 "tab.general" = "General";
 
 /* General tab */
@@ -44,6 +45,10 @@
 /* Copy / Paste tab */
 "copy_paste.enabled" = "Use Linux-style Ctrl shortcuts for copy and paste";
 "copy_paste.description" = "In regular apps, Ctrl-C and Ctrl-V are translated to Command-C and Command-V. In terminal apps, plain Ctrl-C and Ctrl-V remain available for interrupts and Vim; use Ctrl-Shift-C and Ctrl-Shift-V for copy and paste instead.";
+
+/* Terminal tab */
+"terminal_modifier_swap.enabled" = "Swap Command and Control only in terminals";
+"terminal_modifier_swap.description" = "Swap Command and Control only while a terminal such as Kitty or Alacritty is frontmost. This lets the macOS Caps Lock position act as Control for Vim while preserving normal Command shortcuts in other apps.";
 
 /* Common units */
 "common.seconds" = "%.1f sec";

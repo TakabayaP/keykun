@@ -13,6 +13,7 @@
 "tab.input_switch" = "入力切り替え";
 "tab.slack_escape" = "Slack Esc";
 "tab.copy_paste" = "コピー / ペースト";
+"tab.terminal" = "ターミナル";
 "tab.general" = "一般";
 
 /* General tab */
@@ -44,6 +45,10 @@
 /* Copy / Paste tab */
 "copy_paste.enabled" = "Linux と同じ Ctrl 操作でコピー / ペーストする";
 "copy_paste.description" = "通常のアプリでは Ctrl-C / Ctrl-V を Command-C / Command-V に変換します。ターミナルでは割り込みや Vim の操作を守るため Ctrl-C / Ctrl-V はそのままにし、Ctrl-Shift-C / Ctrl-Shift-V でコピー / ペーストします。";
+
+/* Terminal tab */
+"terminal_modifier_swap.enabled" = "ターミナル内だけ Command と Control を交換する";
+"terminal_modifier_swap.description" = "Kitty、Alacrittyなどのターミナルが最前面のときだけ Command と Control を交換します。macOSのCaps Lock位置をVimのCtrl操作に使いながら、通常アプリのCommandショートカットはそのまま維持できます。";
 
 /* Common units */
 "common.seconds" = "%.1f 秒";

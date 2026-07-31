@@ -12,6 +12,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(s.inputSwitch.tapThreshold, 0.5, accuracy: 0.0001)
         XCTAssertFalse(s.slackEscape.isEnabled)
         XCTAssertFalse(s.copyPaste.isEnabled)
+        XCTAssertFalse(s.terminalModifierSwap.isEnabled)
     }
 
     func testInputSwitchCodableRoundTrip() throws {
@@ -87,6 +88,19 @@ final class SettingsTests: XCTestCase {
         let decoded = try JSONDecoder().decode(Settings.self, from: data)
 
         XCTAssertEqual(decoded.copyPaste, CopyPasteSettings(isEnabled: true))
+    }
+
+    func testTerminalModifierSwapCodableRoundTrip() throws {
+        var s = Settings.default
+        s.terminalModifierSwap.isEnabled = true
+
+        let data = try JSONEncoder().encode(s)
+        let decoded = try JSONDecoder().decode(Settings.self, from: data)
+
+        XCTAssertEqual(
+            decoded.terminalModifierSwap,
+            TerminalModifierSwapSettings(isEnabled: true)
+        )
     }
 
     func testDecodingEmptyObjectFallsBackToDefaults() throws {

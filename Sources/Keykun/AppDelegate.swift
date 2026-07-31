@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let inputSwitch = InputSwitchHandler()
     private let slackEscape = SlackEscapeHandler()
     private let copyPaste = CopyPasteHandler()
+    private let terminalModifierSwap = TerminalModifierSwapHandler()
 
     private var statusBar: StatusBarController?
     private var settingsWindowController: SettingsWindowController?
@@ -27,8 +28,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         applySettings(settings)
 
         eventTap.add(slackEscape)
-        eventTap.add(copyPaste)
         eventTap.add(inputSwitch)
+        // 入力切り替えは元の Command を観測し、コピー/ペーストは交換後の
+        // Linux と同じ Ctrl-Shift-C/V を観測する。
+        eventTap.add(terminalModifierSwap)
+        eventTap.add(copyPaste)
 
         statusBar = StatusBarController(
             openSettings: { [weak self] in self?.openSettings() },
@@ -52,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         slackEscape.update(settings.slackEscape)
         copyPaste.update(settings.copyPaste)
         inputSwitch.update(settings.inputSwitch)
+        terminalModifierSwap.update(settings.terminalModifierSwap)
     }
 
     private func openSettings() {
