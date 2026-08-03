@@ -20,7 +20,7 @@
 
 Keykun は macOS 用のキー操作カスタマイズツール（メニューバー常駐アプリ）。
 現在は入力モード切り替え、Slack の Esc 置き換え、Linux 風の Ctrl コピー/ペースト、
-ターミナル限定の Command / Control 交換、Command-H の無効化を提供する。
+ターミナル限定の Command / Control 交換（J はmacSKKのCtrl-J用に除外）、Command-H の無効化を提供する。
 外部依存なし（AppKit / ApplicationServices / SwiftUI のみ）の Swift Package Manager プロジェクト。
 今後さまざまなキー設定機能を追加していく前提で、設定 UI はタブで拡張する構成にしている。
 
@@ -62,7 +62,8 @@ AD_HOC=1 bash Scripts/bundle.sh debug  # 証明書が無い場合のアドホッ
   - `CopyPasteHandler`（`KeyEventHandler`）— 通常アプリでは Ctrl-C/V、ターミナルでは
     Ctrl-Shift-C/V を Command-C/V に変換する。ターミナルの Ctrl-C/V は割り込みと Vim のため素通しする。
   - `TerminalModifierSwapHandler`（`KeyEventHandler`）— ターミナルが最前面のときだけ
-    Command / Control の汎用・左右別フラグと修飾キーコードを交換する。
+    Command / Control の汎用・左右別フラグと修飾キーコードを交換する。通常の J キーイベントは
+    macSKK の Ctrl-J を維持するため交換対象外にする。
   - `CommandHideHandler`（`KeyEventHandler`）— 通常アプリの Command-H を消費し、
     macOS 標準の「アプリを隠す」を無効化する。ターミナルは交換処理へ渡すため対象外。
   - `AccessibilityPermission` — アクセシビリティ権限の確認・要求・設定画面オープン

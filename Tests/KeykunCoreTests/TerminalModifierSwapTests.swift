@@ -35,6 +35,14 @@ final class TerminalModifierSwapTests: XCTestCase {
         XCTAssertEqual(TerminalModifierSwap.swapKeyCode(3), 3)
     }
 
+    func testControlJKeyEventIsNotSwapped() {
+        XCTAssertFalse(TerminalModifierSwap.shouldSwapKeyEventKeyCode(38))
+    }
+
+    func testOtherKeyEventsAreSwapped() {
+        XCTAssertTrue(TerminalModifierSwap.shouldSwapKeyEventKeyCode(37))
+    }
+
     func testCapsPositionCommandBecomesLinuxCopyShortcutBeforeMatching() {
         let physicalCapsFlags =
             TerminalModifierSwap.command

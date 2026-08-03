@@ -6,6 +6,7 @@ macOS 用のキー操作カスタマイズツール（メニューバー常駐�
 - Slack が最前面のときの Esc → Ctrl-G 置き換え（SKK 向け）
 - Linux 風の Ctrl-C/V によるコピー/ペースト（ターミナルでは Ctrl-Shift-C/V）
 - ターミナルが最前面のときだけ Command / Control を交換
+- ターミナル内の J キーは交換から除外し、macSKK の Ctrl-J を維持
 - macOS 標準の Command-H（アプリを隠す）を無効化
 - ログイン時の自動起動
 
@@ -43,6 +44,9 @@ Ctrl-Shift-C / Ctrl-Shift-V をコピー / ペーストとして Command-C / Com
 有効にすると、Kitty、Alacritty などのターミナルが最前面のときだけ Command と Control を交換します。
 通常アプリの Command ショートカットには影響しません。macOS 側で Caps Lock を Command にしている場合は、
 ターミナル内で Caps Lock 位置を Linux と同じ Control として使えます。
+
+ターミナル内の J キーだけは交換対象から外しています。これにより macSKK のひらがな切り替えを
+通常アプリとターミナルの両方で Ctrl-J に揃えられます。
 
 ### Command-H
 
