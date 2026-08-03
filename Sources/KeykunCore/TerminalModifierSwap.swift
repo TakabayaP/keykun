@@ -3,8 +3,8 @@
 /// CGEventFlags への依存を避け、汎用フラグと左右別の device-dependent
 /// フラグを UInt64 のまま交換する。
 public enum TerminalModifierSwap {
-    /// macOS の仮想キーコード（ANSI J）。macSKK の Ctrl-J をターミナルでも
-    /// そのまま入力メソッドへ届けるため、通常キーイベントの交換対象から外す。
+    /// macOS の仮想キーコード（ANSI J）。macOS が Control として出した
+    /// macSKK の Ctrl-J はターミナルでもそのまま入力メソッドへ届ける。
     public static let controlJKeyCode: Int64 = 38
 
     public static let control: UInt64 = 0x0004_0000
@@ -34,9 +34,16 @@ public enum TerminalModifierSwap {
     }
 
     /// 通常キーイベントの Command / Control 交換を行うか判定する。
-    /// flagsChanged（修飾キーそのもの）は常に交換し、J キーだけを除外する。
-    public static func shouldSwapKeyEventKeyCode(_ keyCode: Int64) -> Bool {
-        keyCode != controlJKeyCode
+    ///
+    /// J は macOS が Control として出した場合だけ除外する。これは物理 Command
+    /// キー由来の macSKK Ctrl-J を守るためで、macOS が Command として出す
+    /// Caps Lock 位置の J は交換して Kitty の Ctrl-J（Neovim の F19）へ届ける。
+    /// flagsChanged（修飾キーそのもの）は常に交換する。
+    public static func shouldSwapKeyEvent(keyCode: Int64, rawFlags: UInt64) -> Bool {
+        guard keyCode == controlJKeyCode else { return true }
+
+        let controlBits = control | leftControl | rightControl
+        return rawFlags & controlBits == 0
     }
 
     private static func swapBits(_ first: UInt64, _ second: UInt64, in value: inout UInt64) {

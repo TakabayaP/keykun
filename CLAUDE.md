@@ -20,7 +20,8 @@
 
 Keykun は macOS 用のキー操作カスタマイズツール（メニューバー常駐アプリ）。
 現在は入力モード切り替え、Slack の Esc 置き換え、Linux 風の Ctrl コピー/ペースト、
-ターミナル限定の Command / Control 交換（J はmacSKKのCtrl-J用に除外）、Command-H の無効化を提供する。
+ターミナル限定の Command / Control 交換（macOS が Control として出す J は macSKK の Ctrl-J 用に除外）、
+Command-H の無効化を提供する。
 外部依存なし（AppKit / ApplicationServices / SwiftUI のみ）の Swift Package Manager プロジェクト。
 今後さまざまなキー設定機能を追加していく前提で、設定 UI はタブで拡張する構成にしている。
 

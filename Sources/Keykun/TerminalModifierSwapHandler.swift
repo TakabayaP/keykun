@@ -27,10 +27,13 @@ final class TerminalModifierSwapHandler: KeyEventHandler {
 
         if type == .keyDown || type == .keyUp {
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-            guard TerminalModifierSwap.shouldSwapKeyEventKeyCode(keyCode) else {
-                // macSKK の Hiragana キーを Ctrl-J に統一する。修飾キー自体の
-                // flagsChanged は交換済みなので、Herdr の held-prefix は
-                // prefix+ctrl+j として別名登録する。
+            guard TerminalModifierSwap.shouldSwapKeyEvent(
+                keyCode: keyCode,
+                rawFlags: event.flags.rawValue
+            ) else {
+                // macOS が Control として出した J は macSKK の Ctrl-J として
+                // そのまま届ける。Command として出した J は通常どおり交換し、
+                // Caps Lock 位置の Ctrl-J / Kitty の F19 を維持する。
                 return false
             }
         }
