@@ -50,6 +50,13 @@ Ctrl-Shift-C / Ctrl-Shift-V をコピー / ペーストとして Command-C / Com
 Command として出す Caps Lock 位置の J は通常どおり交換され、Kitty の Ctrl-J（Neovim の F19）
 として使えます。
 
+macOS で Caps Lock を Command、物理 Command を Control に割り当てている前提での物理キー対応:
+
+| 物理キー | ターミナル内の結果 |
+|---|---|
+| Caps Lock + J | Kitty の Ctrl-J（Neovim ターミナル切替など） |
+| Command + J | macSKK のひらがなリセット |
+
 ### Command-H
 
 「一般」タブで有効にすると、通常アプリの Command-H を握りつぶして macOS の「アプリを隠す」を
